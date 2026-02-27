@@ -532,7 +532,8 @@ async function renderSubmit(app) {
       const lastName = c.name.split(' ').slice(1).join(' ');
       html += `<button type="button" class="contestant-card" data-name="${c.name}">`;
       if (c.image) {
-        html += `<div class="card-img"><img src="${c.image}" alt="${c.name}" loading="lazy"></div>`;
+        const smallImg = c.image.replace('-1024x683', '-150x150').replace('-1024x682', '-150x150');
+        html += `<div class="card-img"><img src="${smallImg}" alt="${c.name}" loading="lazy"></div>`;
       }
       html += `<div class="card-info">`;
       html += `<span class="card-name">${firstName}</span>`;
@@ -559,25 +560,26 @@ async function renderSubmit(app) {
   const submitBtn = document.getElementById('submit-btn');
 
   function updateUI() {
-    // update slots
-    slots.forEach((slot, i) => {
-      const name = selected[i] || '';
-      const nameEl = slot.querySelector('.slot-name');
-      nameEl.textContent = name ? name.split(' ')[0] : '';
-      slot.classList.toggle('filled', !!name);
-    });
-
-    // update cards
     const selectedSet = new Set(selected);
-    cards.forEach(card => {
-      const name = card.dataset.name;
-      const isSelected = selectedSet.has(name);
-      card.classList.toggle('selected', isSelected);
-      card.classList.toggle('unavailable', !isSelected && selected.length >= totalSlots);
-    });
+    const full = selected.length >= totalSlots;
 
-    // update submit button
-    submitBtn.disabled = selected.length < totalSlots;
+    // batch DOM reads, then writes
+    requestAnimationFrame(() => {
+      slots.forEach((slot, i) => {
+        const name = selected[i] || '';
+        slot.querySelector('.slot-name').textContent = name ? name.split(' ')[0] : '';
+        slot.classList.toggle('filled', !!name);
+      });
+
+      cards.forEach(card => {
+        const name = card.dataset.name;
+        const sel = selectedSet.has(name);
+        card.classList.toggle('selected', sel);
+        card.classList.toggle('unavailable', !sel && full);
+      });
+
+      submitBtn.disabled = !full;
+    });
   }
 
   cards.forEach(card => {
