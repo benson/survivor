@@ -566,6 +566,10 @@ p { line-height: 1.65; font-size: 0.95rem; color: var(--faded-ink); }
   border-color: var(--rope-tan);
 }
 
+.form-field select option:disabled {
+  color: var(--canvas-dark);
+}
+
 .submit-btn {
   font-family: inherit;
   font-size: 0.85rem;

@@ -531,8 +531,27 @@ async function renderSubmit(app) {
 
   app.innerHTML = html;
 
+  // sync dropdowns — disable already-chosen contestants in other selects
+  const form = document.getElementById('pick-form');
+  const selects = form.querySelectorAll('select');
+
+  function syncSelects() {
+    const chosen = new Set();
+    for (const sel of selects) {
+      if (sel.value) chosen.add(sel.value);
+    }
+    for (const sel of selects) {
+      for (const opt of sel.options) {
+        if (!opt.value) continue;
+        opt.disabled = opt.value !== sel.value && chosen.has(opt.value);
+      }
+    }
+  }
+
+  for (const sel of selects) sel.addEventListener('change', syncSelects);
+
   // form handler
-  document.getElementById('pick-form').addEventListener('submit', async (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const status = document.getElementById('submit-status');
     const btn = e.target.querySelector('button[type="submit"]');
