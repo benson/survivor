@@ -634,18 +634,21 @@ async function renderSubmit(app) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ season: season.id, name, picks, alternates })
       });
-      const data = await res.json();
       if (res.ok) {
+        const data = await res.json();
         status.textContent = 'picks submitted! redirecting...';
         status.className = 'submit-status success';
         delete seasonDataCache[season.id];
         setTimeout(() => { location.hash = '#/'; }, 1000);
       } else {
-        status.textContent = data.error || 'submission failed';
+        let msg = 'submission failed';
+        try { const data = await res.json(); msg = data.error || msg; } catch (e) {}
+        status.textContent = msg;
         status.className = 'submit-status error';
         submitBtn.disabled = false;
       }
     } catch (err) {
+      console.error('pick submission error:', err);
       status.textContent = 'network error — try again';
       status.className = 'submit-status error';
       submitBtn.disabled = false;

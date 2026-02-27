@@ -1,4 +1,4 @@
-const ALLOWED_ORIGINS = ['https://bensonperry.com', 'http://localhost:8080', 'http://127.0.0.1:8080'];
+const ALLOWED_ORIGINS = ['https://bensonperry.com', 'https://www.bensonperry.com', 'http://localhost:8080', 'http://127.0.0.1:8080'];
 
 function getCorsOrigin(request) {
   const origin = request.headers.get('Origin') || '';
