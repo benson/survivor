@@ -110,6 +110,24 @@ export default {
       }
     }
 
+    // POST /admin/delete-pick — remove a submission by name
+    if (request.method === 'POST' && path === '/admin/delete-pick') {
+      if (!isAuthorized(request, env)) return json({ error: 'unauthorized' }, 401, request);
+
+      try {
+        const { season, name } = await request.json();
+        if (!season || !name) return json({ error: 'season and name required' }, 400, request);
+
+        const key = `picks:${season}`;
+        let picks = await env.DATA.get(key, 'json') || [];
+        picks = picks.filter(p => p.name !== name);
+        await env.DATA.put(key, JSON.stringify(picks));
+        return json({ ok: true, remaining: picks.length }, 200, request);
+      } catch (e) {
+        return json({ error: 'invalid request body' }, 400, request);
+      }
+    }
+
     // GET /admin/export/:season — export picks for committing
     if (request.method === 'GET' && path.startsWith('/admin/export/')) {
       if (!isAuthorized(request, env)) return json({ error: 'unauthorized' }, 401, request);
