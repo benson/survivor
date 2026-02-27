@@ -1,0 +1,14 @@
+{
+  "id": "s49",
+  "number": 49,
+  "name": "survivor 49",
+  "status": "completed",
+  "contestantCount": 18,
+  "wikiSlug": "Survivor_49",
+  "picksPerPlayer": 6,
+  "alternates": 1,
+  "scoring": {
+    "winnerBonus": 5,
+    "runnerUpBonus": 3
+  }
+}

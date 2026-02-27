@@ -1,0 +1,20 @@
+[
+  { "name": "savannah louie", "placement": 1, "method": "winner", "jury": false, "note": "sole survivor", "bonuses": {} },
+  { "name": "sophi balerdi", "placement": 2, "method": "runner-up", "jury": false, "note": "runner-up", "bonuses": {} },
+  { "name": "sage ahrens-nichols", "placement": 3, "method": "runner-up", "jury": false, "note": "2nd runner-up", "bonuses": {} },
+  { "name": "rizo velovic", "placement": 4, "method": "fire-making", "jury": true, "note": "fire-making — 8th jury", "bonuses": {} },
+  { "name": "kristina mills", "placement": 5, "method": "voted out", "jury": true, "note": "7th jury", "bonuses": {} },
+  { "name": "steven ramm", "placement": 6, "method": "voted out", "jury": true, "note": "6th jury", "bonuses": {} },
+  { "name": "sophie segreti", "placement": 7, "method": "voted out", "jury": true, "note": "5th jury", "bonuses": {} },
+  { "name": "jawan pitts", "placement": 8, "method": "voted out", "jury": true, "note": "4th jury", "bonuses": {} },
+  { "name": "alex moore", "placement": 9, "method": "voted out", "jury": true, "note": "3rd jury", "bonuses": {} },
+  { "name": "mc chukwujekwu", "placement": 10, "method": "voted out", "jury": true, "note": "2nd jury", "bonuses": {} },
+  { "name": "nate moore", "placement": 11, "method": "voted out", "jury": true, "note": "1st jury", "bonuses": {} },
+  { "name": "shannon fairweather", "placement": 12, "method": "voted out", "jury": false, "note": "6th voted out", "bonuses": {} },
+  { "name": "jason treul", "placement": 13, "method": "voted out", "jury": false, "note": "5th voted out", "bonuses": {} },
+  { "name": "matt williams", "placement": 14, "method": "voted out", "jury": false, "note": "4th voted out", "bonuses": {} },
+  { "name": "jeremiah ing", "placement": 15, "method": "voted out", "jury": false, "note": "3rd voted out", "bonuses": {} },
+  { "name": "jake latimer", "placement": 16, "method": "medevac", "jury": false, "note": "medevac", "bonuses": {} },
+  { "name": "annie davis", "placement": 17, "method": "voted out", "jury": false, "note": "2nd voted out", "bonuses": {} },
+  { "name": "nicole mazullo", "placement": 18, "method": "voted out", "jury": false, "note": "1st voted out", "bonuses": {} }
+]

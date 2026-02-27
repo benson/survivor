@@ -1,0 +1,8 @@
+[
+  { "name": "mom", "picks": ["jake latimer", "jason treul", "mc chukwujekwu", "savannah louie", "nate moore", "sophi balerdi"], "alternates": ["steven ramm"] },
+  { "name": "benson", "picks": ["rizo velovic", "nate moore", "steven ramm", "savannah louie", "jason treul", "alex moore"], "alternates": ["jake latimer"] },
+  { "name": "dad", "picks": ["alex moore", "jake latimer", "matt williams", "mc chukwujekwu", "savannah louie", "steven ramm"], "alternates": ["rizo velovic"] },
+  { "name": "lil", "picks": ["nate moore", "rizo velovic", "jason treul", "mc chukwujekwu", "savannah louie", "alex moore"], "alternates": ["shannon fairweather"] },
+  { "name": "sameh", "picks": ["jake latimer", "jeremiah ing", "mc chukwujekwu", "rizo velovic", "savannah louie", "nate moore"], "alternates": ["steven ramm"] },
+  { "name": "ellie", "picks": ["nate moore", "rizo velovic", "mc chukwujekwu", "steven ramm", "jake latimer", "jason treul"], "alternates": ["jawan pitts"] }
+]

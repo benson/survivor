@@ -1,0 +1,7 @@
+name = "survivor-api"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+[[kv_namespaces]]
+binding = "DATA"
+id = "c7cabe1c0f224b6da4a8e4d3fcdf3394"

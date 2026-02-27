@@ -1,0 +1,18 @@
+{
+  "id": "s50",
+  "number": 50,
+  "name": "survivor 50",
+  "status": "active",
+  "contestantCount": 24,
+  "wikiSlug": "Survivor_50:_In_the_Hands_of_the_Fans",
+  "submissionDeadline": "2026-02-26T01:00:00Z",
+  "picksPerPlayer": 6,
+  "alternates": 1,
+  "scoring": {
+    "winnerBonus": 5,
+    "runnerUpBonus": 3,
+    "immunityWin": 1,
+    "idolFound": 1,
+    "idolPlayed": 1
+  }
+}
