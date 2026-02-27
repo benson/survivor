@@ -311,7 +311,7 @@ async function renderSeason(app, seasonId) {
         else if (c && c.placement === 1) cls += ' winner';
         else if (c && c.placement === 2) cls += ' runner-up';
         else if (c && c.placement != null && !c.jury) cls += ' pre-jury';
-        html += `<td><span class="${cls}">${name}`;
+        html += `<td><span class="${cls}">${thumbnail(c)}${name}`;
         if (c && c.placement != null) html += ` <span class="pts">(${pick.total})</span>`;
         html += `</span></td>`;
       }
@@ -320,7 +320,7 @@ async function renderSeason(app, seasonId) {
         const name = c ? c.name.split(' ')[0] : '?';
         let cls = 'pick';
         if (alt.swappedIn) cls += ' swapped-in';
-        html += `<td class="alt-col"><span class="${cls}">${name}`;
+        html += `<td class="alt-col"><span class="${cls}">${thumbnail(c)}${name}`;
         if (c && c.placement != null) html += ` <span class="pts">(${alt.total})</span>`;
         html += `</span></td>`;
       }
@@ -353,7 +353,7 @@ async function renderSeason(app, seasonId) {
         const placementStr = c.placement != null ? ordinal(c.placement) : 'active';
         const calc = pick.swappedOut ? '&larr; swapped out' : '';
         const pts = pick.swappedOut ? `<s>${pick.total}</s>` : pick.total;
-        html += `<tr><td>${c.name.split(' ')[0]} (${placementStr})</td><td class="calc">${calc}</td><td class="bp">${pts}</td></tr>`;
+        html += `<tr><td>${thumbnail(c)}${c.name.split(' ')[0]} (${placementStr})</td><td class="calc">${calc}</td><td class="bp">${pts}</td></tr>`;
       }
 
       for (const alt of result.alternates) {
@@ -361,9 +361,9 @@ async function renderSeason(app, seasonId) {
         if (!c) continue;
         const placementStr = c.placement != null ? ordinal(c.placement) : 'active';
         if (alt.swappedIn) {
-          html += `<tr><td>${c.name.split(' ')[0]} (${placementStr})</td><td class="calc">&larr; swapped in</td><td class="bp">${alt.total}</td></tr>`;
+          html += `<tr><td>${thumbnail(c)}${c.name.split(' ')[0]} (${placementStr})</td><td class="calc">&larr; swapped in</td><td class="bp">${alt.total}</td></tr>`;
         } else {
-          html += `<tr class="bonus-row"><td colspan="2">alt ${c.name.split(' ')[0]} (${placementStr}) not used</td><td class="bp">&mdash;</td></tr>`;
+          html += `<tr class="bonus-row"><td colspan="2">alt ${thumbnail(c)}${c.name.split(' ')[0]} (${placementStr}) not used</td><td class="bp">&mdash;</td></tr>`;
         }
       }
 
@@ -659,6 +659,12 @@ async function renderSubmit(app) {
 }
 
 // --- helpers ---
+
+function thumbnail(c) {
+  if (!c || !c.image) return '';
+  const src = c.image.replace('-1024x683', '-150x150').replace('-1024x682', '-150x150');
+  return `<img class="inline-headshot" src="${src}" alt="">`;
+}
 
 function ordinal(n) {
   if (n == null) return '?';

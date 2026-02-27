@@ -350,6 +350,15 @@ p { line-height: 1.65; font-size: 0.95rem; color: var(--faded-ink); }
 
 .picks tbody tr:hover td { background: rgba(196, 164, 108, 0.12); }
 
+.inline-headshot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
 /* scoring rules */
 .scoring-rules {
   background: var(--aged-white);
