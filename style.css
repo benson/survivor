@@ -164,6 +164,21 @@ p { line-height: 1.65; font-size: 0.95rem; color: var(--faded-ink); }
 .season-nav a.active { border-color: var(--terracotta); color: var(--terracotta); font-weight: 700; }
 .season-nav .submit-link { border-color: var(--terracotta); color: var(--terracotta); font-weight: 700; }
 
+.submit-callout {
+  margin: 28px 0;
+  padding: 16px 20px;
+  background: var(--aged-white);
+  border: 2px solid var(--terracotta);
+  text-align: center;
+}
+
+.submit-callout a {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--terracotta-dark);
+  letter-spacing: 0.02em;
+}
+
 /* winner callout */
 .winner-callout {
   margin: 40px auto 0;

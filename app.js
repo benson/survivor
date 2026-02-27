@@ -233,6 +233,11 @@ async function renderSeason(app, seasonId) {
     html += `<p class="subtitle">final results</p>`;
   }
 
+  // submit callout (active season, submissions open, no picks yet)
+  if (submissionsOpen) {
+    html += `<div class="submit-callout"><a href="#/submit">submit your picks for ${season.name} &rarr;</a></div>`;
+  }
+
   // winner callout (completed seasons)
   if (season.status === 'completed' && standings.length > 0) {
     const winner = standings[0];
