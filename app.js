@@ -491,7 +491,6 @@ async function renderSubmit(app) {
     return;
   }
 
-  // fetch existing submissions to block duplicates
   let existingNames = new Set();
   try {
     const res = await fetch(`${WORKER_URL}/picks/${season.id}`);
@@ -501,62 +500,114 @@ async function renderSubmit(app) {
     }
   } catch (e) {}
 
-  const sortedContestants = [...contestants].sort((a, b) => a.name.localeCompare(b.name));
+  const totalSlots = season.picksPerPlayer + season.alternates;
+  const tribes = ['cila', 'kalo', 'vatu'];
 
   let html = `<a href="#/" class="back">&larr; back</a>`;
   html += `<h1>submit picks — ${season.name}</h1>`;
   if (deadline) {
     html += `<p class="subtitle">deadline: ${deadline.toLocaleDateString('en-us', { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}</p>`;
   }
-  html += `<p class="section-note">choose ${season.picksPerPlayer} contestants + ${season.alternates} alternate.</p>`;
 
-  html += `<form id="pick-form" class="pick-form">`;
-  html += `<div class="form-field"><label for="player-name">your name</label><input type="text" id="player-name" required placeholder="e.g. benson"></div>`;
+  // name input
+  html += `<div class="form-field" style="max-width:300px;margin-top:20px"><label for="player-name">your name</label><input type="text" id="player-name" required placeholder="e.g. benson"></div>`;
 
+  // pick slots bar
+  html += `<div class="pick-slots">`;
   for (let i = 0; i < season.picksPerPlayer; i++) {
-    html += `<div class="form-field"><label>pick ${i + 1}</label><select name="pick-${i}" required><option value="">choose...</option>`;
-    for (const c of sortedContestants) html += `<option value="${c.name}">${c.name}</option>`;
-    html += `</select></div>`;
+    html += `<div class="pick-slot" data-slot="${i}"><span class="slot-label">pick ${i + 1}</span><span class="slot-name"></span></div>`;
   }
-
   for (let i = 0; i < season.alternates; i++) {
-    html += `<div class="form-field"><label>alternate ${i + 1}</label><select name="alt-${i}" required><option value="">choose...</option>`;
-    for (const c of sortedContestants) html += `<option value="${c.name}">${c.name}</option>`;
-    html += `</select></div>`;
+    html += `<div class="pick-slot alt-slot" data-slot="${season.picksPerPlayer + i}"><span class="slot-label">alt</span><span class="slot-name"></span></div>`;
+  }
+  html += `</div>`;
+
+  // contestant grid by tribe
+  for (const tribe of tribes) {
+    const tribeContestants = contestants.filter(c => c.tribe === tribe);
+    html += `<div class="tribe-section"><h2 class="tribe-name tribe-${tribe}">${tribe}</h2>`;
+    html += `<div class="contestant-grid">`;
+    for (const c of tribeContestants) {
+      const firstName = c.name.split(' ')[0];
+      const lastName = c.name.split(' ').slice(1).join(' ');
+      html += `<button type="button" class="contestant-card" data-name="${c.name}">`;
+      if (c.image) {
+        html += `<div class="card-img"><img src="${c.image}" alt="${c.name}" loading="lazy"></div>`;
+      }
+      html += `<div class="card-info">`;
+      html += `<span class="card-name">${firstName}</span>`;
+      html += `<span class="card-last">${lastName}</span>`;
+      if (c.bio) html += `<span class="card-bio">${c.bio}</span>`;
+      html += `</div>`;
+      html += `<div class="card-check">&#10003;</div>`;
+      html += `</button>`;
+    }
+    html += `</div></div>`;
   }
 
-  html += `<button type="submit" class="submit-btn">submit picks</button>`;
+  html += `<div class="submit-bar">`;
+  html += `<button type="button" id="submit-btn" class="submit-btn" disabled>submit picks</button>`;
   html += `<div id="submit-status" class="submit-status"></div>`;
-  html += `</form>`;
+  html += `</div>`;
 
   app.innerHTML = html;
 
-  // sync dropdowns — disable already-chosen contestants in other selects
-  const form = document.getElementById('pick-form');
-  const selects = form.querySelectorAll('select');
+  // --- card picker logic ---
+  const selected = []; // array of contestant names, length = totalSlots
+  const slots = app.querySelectorAll('.pick-slot');
+  const cards = app.querySelectorAll('.contestant-card');
+  const submitBtn = document.getElementById('submit-btn');
 
-  function syncSelects() {
-    const chosen = new Set();
-    for (const sel of selects) {
-      if (sel.value) chosen.add(sel.value);
-    }
-    for (const sel of selects) {
-      for (const opt of sel.options) {
-        if (!opt.value) continue;
-        opt.disabled = opt.value !== sel.value && chosen.has(opt.value);
-      }
-    }
+  function updateUI() {
+    // update slots
+    slots.forEach((slot, i) => {
+      const name = selected[i] || '';
+      const nameEl = slot.querySelector('.slot-name');
+      nameEl.textContent = name ? name.split(' ')[0] : '';
+      slot.classList.toggle('filled', !!name);
+    });
+
+    // update cards
+    const selectedSet = new Set(selected);
+    cards.forEach(card => {
+      const name = card.dataset.name;
+      const isSelected = selectedSet.has(name);
+      card.classList.toggle('selected', isSelected);
+      card.classList.toggle('unavailable', !isSelected && selected.length >= totalSlots);
+    });
+
+    // update submit button
+    submitBtn.disabled = selected.length < totalSlots;
   }
 
-  for (const sel of selects) sel.addEventListener('change', syncSelects);
+  cards.forEach(card => {
+    card.addEventListener('click', () => {
+      const name = card.dataset.name;
+      const idx = selected.indexOf(name);
+      if (idx !== -1) {
+        selected.splice(idx, 1);
+      } else if (selected.length < totalSlots) {
+        selected.push(name);
+      }
+      updateUI();
+    });
+  });
 
-  // form handler
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+  // clicking a filled slot removes that pick
+  slots.forEach((slot, i) => {
+    slot.addEventListener('click', () => {
+      if (selected[i]) {
+        selected.splice(i, 1);
+        updateUI();
+      }
+    });
+  });
+
+  // submit handler
+  submitBtn.addEventListener('click', async () => {
     const status = document.getElementById('submit-status');
-    const btn = e.target.querySelector('button[type="submit"]');
     const name = document.getElementById('player-name').value.trim().toLowerCase();
-    if (!name) { status.textContent = 'enter your name'; return; }
+    if (!name) { status.textContent = 'enter your name'; status.className = 'submit-status error'; return; }
 
     if (existingNames.has(name)) {
       status.textContent = `"${name}" has already submitted picks`;
@@ -564,30 +615,16 @@ async function renderSubmit(app) {
       return;
     }
 
-    const picks = [];
-    for (let i = 0; i < season.picksPerPlayer; i++) {
-      const val = e.target.querySelector(`[name="pick-${i}"]`).value;
-      if (!val) { status.textContent = `select pick ${i + 1}`; return; }
-      picks.push(val);
-    }
-
-    const alternates = [];
-    for (let i = 0; i < season.alternates; i++) {
-      const val = e.target.querySelector(`[name="alt-${i}"]`).value;
-      if (!val) { status.textContent = `select alternate ${i + 1}`; return; }
-      alternates.push(val);
-    }
-
-    // check duplicates
-    const all = [...picks, ...alternates];
-    const unique = new Set(all);
-    if (unique.size !== all.length) {
-      status.textContent = 'no duplicate contestants allowed';
+    if (selected.length < totalSlots) {
+      status.textContent = `select ${totalSlots} contestants`;
       status.className = 'submit-status error';
       return;
     }
 
-    btn.disabled = true;
+    const picks = selected.slice(0, season.picksPerPlayer);
+    const alternates = selected.slice(season.picksPerPlayer);
+
+    submitBtn.disabled = true;
     status.textContent = 'submitting...';
     status.className = 'submit-status';
 
@@ -601,18 +638,17 @@ async function renderSubmit(app) {
       if (res.ok) {
         status.textContent = 'picks submitted! redirecting...';
         status.className = 'submit-status success';
-        btn.disabled = true;
         delete seasonDataCache[season.id];
         setTimeout(() => { location.hash = '#/'; }, 1000);
       } else {
         status.textContent = data.error || 'submission failed';
         status.className = 'submit-status error';
-        btn.disabled = false;
+        submitBtn.disabled = false;
       }
     } catch (err) {
       status.textContent = 'network error — try again';
       status.className = 'submit-status error';
-      btn.disabled = false;
+      submitBtn.disabled = false;
     }
   });
 }

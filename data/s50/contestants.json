@@ -1,26 +1,122 @@
 [
-  { "name": "christian hubicki", "tribe": "cila", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {} },
-  { "name": "cirie fields", "tribe": "cila", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {} },
-  { "name": "emily flippen", "tribe": "cila", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {} },
-  { "name": "jenna lewis-dougherty", "tribe": "cila", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {} },
-  { "name": "joe hunter", "tribe": "cila", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {} },
-  { "name": "ozzy lusth", "tribe": "cila", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {} },
-  { "name": "rick devens", "tribe": "cila", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {} },
-  { "name": "savannah louie", "tribe": "cila", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {} },
-  { "name": "coach wade", "tribe": "kalo", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {} },
-  { "name": "charlie davis", "tribe": "kalo", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {} },
-  { "name": "chrissy hofbeck", "tribe": "kalo", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {} },
-  { "name": "dee valladares", "tribe": "kalo", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {} },
-  { "name": "jonathan young", "tribe": "kalo", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {} },
-  { "name": "kamilla karthigesu", "tribe": "kalo", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {} },
-  { "name": "mike white", "tribe": "kalo", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {} },
-  { "name": "tiffany ervin", "tribe": "kalo", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {} },
-  { "name": "angelina keeley", "tribe": "vatu", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {} },
-  { "name": "aubry bracco", "tribe": "vatu", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {} },
-  { "name": "colby donaldson", "tribe": "vatu", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {} },
-  { "name": "genevieve mushaluk", "tribe": "vatu", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {} },
-  { "name": "kyle fraser", "tribe": "vatu", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {} },
-  { "name": "q burdette", "tribe": "vatu", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {} },
-  { "name": "rizo velovic", "tribe": "vatu", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {} },
-  { "name": "stephanie lagrossa", "tribe": "vatu", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {} }
+  {
+    "name": "christian hubicki", "tribe": "cila", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {},
+    "image": "https://www.paramountplus.com/sneak-peak/wp-content/uploads/2026/01/3080973_01641b-1024x683.jpg",
+    "bio": "s37 david vs goliath — robotics scientist, puzzle beast, lovable nerd"
+  },
+  {
+    "name": "cirie fields", "tribe": "cila", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {},
+    "image": "https://www.paramountplus.com/sneak-peak/wp-content/uploads/2026/01/image-45-1024x683.jpeg",
+    "bio": "s12/s16/s20/s34 — legendary strategist, got off the couch, 5th time playing"
+  },
+  {
+    "name": "emily flippen", "tribe": "cila", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {},
+    "image": "https://www.paramountplus.com/sneak-peak/wp-content/uploads/2026/01/image-48-1024x683.jpeg",
+    "bio": "s45 — underdog turned strategic threat, biggest redemption arc"
+  },
+  {
+    "name": "jenna lewis-dougherty", "tribe": "cila", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {},
+    "image": "https://www.paramountplus.com/sneak-peak/wp-content/uploads/2026/01/image-35-1024x682.jpeg",
+    "bio": "s1/s8 borneo & all-stars — original season cast, old-school survivor"
+  },
+  {
+    "name": "joe hunter", "tribe": "cila", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {},
+    "image": "https://www.paramountplus.com/sneak-peak/wp-content/uploads/2026/01/image-37-1024x682.jpeg",
+    "bio": "s47 — physical powerhouse, firefighter, challenge dominator"
+  },
+  {
+    "name": "ozzy lusth", "tribe": "cila", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {},
+    "image": "https://www.paramountplus.com/sneak-peak/wp-content/uploads/2026/01/image-43-1024x683.jpeg",
+    "bio": "s13/s16/s23/s34 — challenge legend, provider, 5th time playing"
+  },
+  {
+    "name": "rick devens", "tribe": "cila", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {},
+    "image": "https://www.paramountplus.com/sneak-peak/wp-content/uploads/2026/01/image-57-1024x683.jpeg",
+    "bio": "s38 edge of extinction — news anchor, idol magnet, fan favorite"
+  },
+  {
+    "name": "savannah louie", "tribe": "cila", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {},
+    "image": "https://www.paramountplus.com/sneak-peak/wp-content/uploads/2026/01/image-46-1024x683.jpeg",
+    "bio": "s49 winner — sole survivor, social and strategic game"
+  },
+  {
+    "name": "coach wade", "tribe": "kalo", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {},
+    "image": "https://www.paramountplus.com/sneak-peak/wp-content/uploads/2026/01/image-39-1024x682.jpeg",
+    "bio": "s18/s20/s23 — the dragonslayer, storyteller, one of a kind character"
+  },
+  {
+    "name": "charlie davis", "tribe": "kalo", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {},
+    "image": "https://www.paramountplus.com/sneak-peak/wp-content/uploads/2026/01/image-40-1024x683.jpeg",
+    "bio": "s46 winner — law student, quiet strategic mastermind"
+  },
+  {
+    "name": "chrissy hofbeck", "tribe": "kalo", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {},
+    "image": "https://www.paramountplus.com/sneak-peak/wp-content/uploads/2026/01/image-41-1024x683.jpeg",
+    "bio": "s35 heroes vs healers vs hustlers — actuary, immunity run, robbed finalist"
+  },
+  {
+    "name": "dee valladares", "tribe": "kalo", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {},
+    "image": "https://www.paramountplus.com/sneak-peak/wp-content/uploads/2026/01/image-47-1024x683.jpeg",
+    "bio": "s45 winner — cutthroat strategist, dominant winner"
+  },
+  {
+    "name": "jonathan young", "tribe": "kalo", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {},
+    "image": "https://www.paramountplus.com/sneak-peak/wp-content/uploads/2026/01/image-54-1024x683.jpeg",
+    "bio": "s42 — physical beast, viral challenge moments, gentle giant"
+  },
+  {
+    "name": "kamilla karthigesu", "tribe": "kalo", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {},
+    "image": "https://www.paramountplus.com/sneak-peak/wp-content/uploads/2026/01/image-51-1024x683.jpeg",
+    "bio": "s47 — superfan, strategic player, new-era standout"
+  },
+  {
+    "name": "mike white", "tribe": "kalo", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {},
+    "image": "https://www.paramountplus.com/sneak-peak/wp-content/uploads/2026/01/image-36-1024x683.jpeg",
+    "bio": "s37 david vs goliath — hollywood writer/director, beloved runner-up"
+  },
+  {
+    "name": "tiffany ervin", "tribe": "kalo", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {},
+    "image": "https://www.paramountplus.com/sneak-peak/wp-content/uploads/2026/01/image-44-1024x683.jpeg",
+    "bio": "s47 winner — sole survivor, social butterfly, strategic closer"
+  },
+  {
+    "name": "angelina keeley", "tribe": "vatu", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {},
+    "image": "https://www.paramountplus.com/sneak-peak/wp-content/uploads/2026/01/image-56-1024x683.jpeg",
+    "bio": "s37 david vs goliath — negotiator, gave up immunity, iconic moments"
+  },
+  {
+    "name": "aubry bracco", "tribe": "vatu", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {},
+    "image": "https://www.paramountplus.com/sneak-peak/wp-content/uploads/2026/01/image-38-1024x682.jpeg",
+    "bio": "s32/s34/s38 — growth arc, strategic underdog, 3x player"
+  },
+  {
+    "name": "colby donaldson", "tribe": "vatu", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {},
+    "image": "https://www.paramountplus.com/sneak-peak/wp-content/uploads/2026/01/image-55-1024x683.jpeg",
+    "bio": "s2/s8/s20 australian outback — original golden boy, texas cowboy"
+  },
+  {
+    "name": "genevieve mushaluk", "tribe": "vatu", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {},
+    "image": "https://www.paramountplus.com/sneak-peak/wp-content/uploads/2026/01/image-42-1024x683.jpeg",
+    "bio": "s47 — corporate lawyer, stealthy strategist, underestimated"
+  },
+  {
+    "name": "kyle fraser", "tribe": "vatu", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {},
+    "image": "https://www.paramountplus.com/sneak-peak/wp-content/uploads/2026/01/image-49-1024x683.jpeg",
+    "bio": "s48 — physical competitor, loyal alliance player"
+  },
+  {
+    "name": "q burdette", "tribe": "vatu", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {},
+    "image": "https://www.paramountplus.com/sneak-peak/wp-content/uploads/2026/01/image-53-1024x683.jpeg",
+    "bio": "s46 — chaotic energy, big personality, unforgettable tribal councils"
+  },
+  {
+    "name": "rizo velovic", "tribe": "vatu", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {},
+    "image": "https://www.paramountplus.com/sneak-peak/wp-content/uploads/2026/01/image-52-1024x683.jpeg",
+    "bio": "s49 — 4th place, fire-making loser, challenge threat, fan favorite"
+  },
+  {
+    "name": "stephanie lagrossa", "tribe": "vatu", "placement": null, "method": null, "jury": false, "note": null, "bonuses": {},
+    "image": "https://www.paramountplus.com/sneak-peak/wp-content/uploads/2026/01/image-50-1024x683.jpeg",
+    "bio": "s10/s11/s20 palau — ultimate underdog, last ulong standing, fierce competitor"
+  }
 ]

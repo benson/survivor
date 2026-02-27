@@ -528,11 +528,6 @@ p { line-height: 1.65; font-size: 0.95rem; color: var(--faded-ink); }
 }
 
 /* submit form */
-.pick-form {
-  max-width: 400px;
-  margin-top: 20px;
-}
-
 .form-field {
   margin-bottom: 14px;
 }
@@ -547,8 +542,7 @@ p { line-height: 1.65; font-size: 0.95rem; color: var(--faded-ink); }
   margin-bottom: 4px;
 }
 
-.form-field input,
-.form-field select {
+.form-field input {
   width: 100%;
   padding: 8px 10px;
   font-family: inherit;
@@ -560,14 +554,188 @@ p { line-height: 1.65; font-size: 0.95rem; color: var(--faded-ink); }
   transition: border-color 0.2s;
 }
 
-.form-field input:focus,
-.form-field select:focus {
+.form-field input:focus {
   outline: none;
   border-color: var(--rope-tan);
 }
 
-.form-field select option:disabled {
-  color: var(--canvas-dark);
+/* pick slots */
+.pick-slots {
+  display: flex;
+  gap: 6px;
+  margin: 20px 0 8px;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--canvas-cream);
+  padding: 10px 0;
+}
+
+.pick-slot {
+  flex: 1;
+  min-width: 44px;
+  max-width: 70px;
+  padding: 6px 4px;
+  border: 2px dashed var(--canvas-dark);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pick-slot .slot-label {
+  display: block;
+  font-size: 0.58rem;
+  font-weight: 700;
+  color: var(--ash);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pick-slot .slot-name {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--weathered-brown);
+  min-height: 1em;
+  margin-top: 2px;
+}
+
+.pick-slot.filled {
+  border-style: solid;
+  border-color: var(--rope-tan);
+  background: var(--aged-white);
+}
+
+.pick-slot.filled:hover {
+  border-color: var(--dusty-red);
+}
+
+.pick-slot.alt-slot {
+  border-color: var(--terracotta);
+  border-style: dashed;
+}
+
+.pick-slot.alt-slot.filled {
+  border-style: solid;
+  border-color: var(--terracotta);
+  background: rgba(181, 86, 62, 0.06);
+}
+
+/* tribe sections */
+.tribe-section {
+  margin-top: 24px;
+}
+
+.tribe-name {
+  margin-bottom: 10px;
+}
+
+.tribe-name::after { display: none; }
+
+.tribe-cila { color: #c4763e; }
+.tribe-kalo { color: #5a8a5e; }
+.tribe-vatu { color: #6a7ab5; }
+
+/* contestant grid */
+.contestant-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.contestant-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  background: var(--aged-white);
+  border: 2px solid var(--canvas-dark);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  text-transform: lowercase;
+  transition: all 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+
+.contestant-card:hover {
+  border-color: var(--rope-tan);
+}
+
+.contestant-card.selected {
+  border-color: var(--terracotta);
+  background: rgba(181, 86, 62, 0.08);
+}
+
+.contestant-card.selected .card-check {
+  opacity: 1;
+}
+
+.contestant-card.unavailable {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.card-img {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 1px solid var(--canvas-dark);
+}
+
+.card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-name {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--weathered-brown);
+  line-height: 1.2;
+}
+
+.card-last {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--faded-ink);
+  line-height: 1.2;
+}
+
+.card-bio {
+  display: block;
+  font-size: 0.62rem;
+  color: var(--ash);
+  line-height: 1.3;
+  margin-top: 3px;
+}
+
+.card-check {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  font-size: 0.8rem;
+  color: var(--terracotta);
+  font-weight: 700;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+/* submit bar */
+.submit-bar {
+  margin-top: 24px;
+  padding: 16px 0;
 }
 
 .submit-btn {
@@ -638,4 +806,7 @@ footer {
   .ascii-art { font-size: 10px; letter-spacing: 1px; }
   .picks { font-size: 0.85rem; }
   section { margin-top: 44px; }
+  .contestant-grid { grid-template-columns: repeat(4, 1fr); }
+  .pick-slot { max-width: 90px; }
+  .card-img { width: 64px; height: 64px; }
 }
