@@ -173,10 +173,19 @@ p { line-height: 1.65; font-size: 0.95rem; color: var(--faded-ink); }
 }
 
 .submit-callout a {
+  display: block;
   font-size: 1rem;
   font-weight: 700;
   color: var(--terracotta-dark);
   letter-spacing: 0.02em;
+}
+
+.deadline-note {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.78rem;
+  color: var(--ash);
+  font-style: italic;
 }
 
 /* winner callout */

@@ -235,7 +235,8 @@ async function renderSeason(app, seasonId) {
 
   // submit callout (active season, submissions open, no picks yet)
   if (submissionsOpen) {
-    html += `<div class="submit-callout"><a href="#/submit">submit your picks for ${season.name} &rarr;</a></div>`;
+    const deadlineStr = deadline.toLocaleDateString('en-us', { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
+    html += `<div class="submit-callout"><a href="#/submit">submit your picks for ${season.name} &rarr;</a><span class="deadline-note">deadline: ${deadlineStr}</span></div>`;
   }
 
   // winner callout (completed seasons)
