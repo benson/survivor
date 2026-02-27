@@ -15,13 +15,35 @@ async function loadSeasons() {
 }
 
 const seasonDataCache = {};
-async function loadSeasonData(id) {
+async function loadSeasonData(id, bustCache = false) {
+  if (bustCache) delete seasonDataCache[id];
   if (!seasonDataCache[id]) {
-    const [season, contestants, picks] = await Promise.all([
+    const [season, contestants, staticPicks] = await Promise.all([
       fetchJSON(`data/${id}/season.json`),
       fetchJSON(`data/${id}/contestants.json`),
       fetchJSON(`data/${id}/picks.json`)
     ]);
+
+    // for active seasons, merge in live picks from worker
+    let picks = staticPicks;
+    if (season.status === 'active') {
+      try {
+        const res = await fetch(`${WORKER_URL}/picks/${id}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.picks && data.picks.length > 0) {
+            // merge: worker picks override static picks by name
+            const merged = new Map();
+            for (const p of staticPicks) merged.set(p.name, p);
+            for (const p of data.picks) merged.set(p.name, p);
+            picks = Array.from(merged.values());
+          }
+        }
+      } catch (e) {
+        // worker unavailable, fall back to static picks
+      }
+    }
+
     seasonDataCache[id] = { season, contestants, picks };
   }
   return seasonDataCache[id];
@@ -469,6 +491,16 @@ async function renderSubmit(app) {
     return;
   }
 
+  // fetch existing submissions to block duplicates
+  let existingNames = new Set();
+  try {
+    const res = await fetch(`${WORKER_URL}/picks/${season.id}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.picks) existingNames = new Set(data.picks.map(p => p.name));
+    }
+  } catch (e) {}
+
   const sortedContestants = [...contestants].sort((a, b) => a.name.localeCompare(b.name));
 
   let html = `<a href="#/" class="back">&larr; back</a>`;
@@ -476,7 +508,7 @@ async function renderSubmit(app) {
   if (deadline) {
     html += `<p class="subtitle">deadline: ${deadline.toLocaleDateString('en-us', { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}</p>`;
   }
-  html += `<p class="section-note">choose ${season.picksPerPlayer} contestants + ${season.alternates} alternate. last submission per name wins.</p>`;
+  html += `<p class="section-note">choose ${season.picksPerPlayer} contestants + ${season.alternates} alternate.</p>`;
 
   html += `<form id="pick-form" class="pick-form">`;
   html += `<div class="form-field"><label for="player-name">your name</label><input type="text" id="player-name" required placeholder="e.g. benson"></div>`;
@@ -506,6 +538,12 @@ async function renderSubmit(app) {
     const btn = e.target.querySelector('button[type="submit"]');
     const name = document.getElementById('player-name').value.trim().toLowerCase();
     if (!name) { status.textContent = 'enter your name'; return; }
+
+    if (existingNames.has(name)) {
+      status.textContent = `"${name}" has already submitted picks`;
+      status.className = 'submit-status error';
+      return;
+    }
 
     const picks = [];
     for (let i = 0; i < season.picksPerPlayer; i++) {
@@ -542,9 +580,11 @@ async function renderSubmit(app) {
       });
       const data = await res.json();
       if (res.ok) {
-        status.textContent = 'picks submitted!';
+        status.textContent = 'picks submitted! redirecting...';
         status.className = 'submit-status success';
         btn.disabled = true;
+        delete seasonDataCache[season.id];
+        setTimeout(() => { location.hash = '#/'; }, 1000);
       } else {
         status.textContent = data.error || 'submission failed';
         status.className = 'submit-status error';
