@@ -241,9 +241,6 @@ async function renderSeason(app, seasonId) {
     const cls = s.id === seasonId ? 'active' : '';
     html += `<a href="#/season/${s.id}" class="${cls}">${s.name}</a>`;
   }
-  if (submissionsOpen) {
-    html += `<a href="#/submit" class="submit-link">submit picks</a>`;
-  }
   html += `</nav>`;
 
   html += `<h1>${season.name}</h1>`;
