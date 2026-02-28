@@ -624,14 +624,9 @@ p { line-height: 1.65; font-size: 0.95rem; color: var(--faded-ink); }
 }
 
 .pick-slot.alt-slot {
-  border-color: var(--terracotta);
-  border-style: dashed;
 }
 
 .pick-slot.alt-slot.filled {
-  border-style: solid;
-  border-color: var(--terracotta);
-  background: rgba(181, 86, 62, 0.06);
 }
 
 /* tribe sections */
