@@ -40,7 +40,7 @@ async function loadSeasonData(id, bustCache = false) {
           }
         }
       } catch (e) {
-        // worker unavailable, fall back to static picks
+        console.warn('worker fetch failed, using static picks:', e.message);
       }
     }
 
@@ -277,8 +277,8 @@ async function renderSeason(app, seasonId) {
   }
 
   // standings table
+  html += `<section><h2>standings</h2>`;
   if (picks.length > 0) {
-    html += `<section><h2>standings</h2>`;
     html += `<table class="standings"><thead><tr>
       <th class="rank-col">#</th><th>player</th><th class="pts-col">pts</th>
     </tr></thead><tbody>`;
@@ -290,11 +290,15 @@ async function renderSeason(app, seasonId) {
         <td>${p.total}</td>
       </tr>`;
     });
-    html += `</tbody></table></section>`;
+    html += `</tbody></table>`;
+  } else {
+    html += `<p class="section-note">no picks submitted yet.</p>`;
   }
+  html += `</section>`;
 
   // picks grid
   if (picks.length > 0) {
+    /* only show grid when there are picks */
     html += `<section><h2>draft picks</h2>`;
     html += `<p class="section-note">alternates replace your earliest-eliminated pick if beneficial.</p>`;
     html += `<div class="picks-scroll"><table class="picks"><thead><tr><th>player</th>`;
@@ -341,6 +345,7 @@ async function renderSeason(app, seasonId) {
 
   // score breakdowns
   if (picks.length > 0) {
+    /* only show breakdowns when there are picks */
     html += `<section><h2>score breakdowns</h2><div class="breakdowns">`;
     for (const result of standings) {
       html += `<div class="breakdown">`;
