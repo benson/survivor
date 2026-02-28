@@ -357,7 +357,12 @@ p { line-height: 1.65; font-size: 0.95rem; color: var(--faded-ink); }
   object-fit: cover;
   vertical-align: middle;
   margin-right: 4px;
+  border: 2px solid var(--canvas-dark);
 }
+
+.inline-headshot.tribe-border-cila { border-color: #c4763e; }
+.inline-headshot.tribe-border-kalo { border-color: #5a8a5e; }
+.inline-headshot.tribe-border-vatu { border-color: #6a7ab5; }
 
 /* scoring rules */
 .scoring-rules {
@@ -695,8 +700,12 @@ p { line-height: 1.65; font-size: 0.95rem; color: var(--faded-ink); }
   height: 56px;
   flex-shrink: 0;
   overflow: hidden;
-  border: 1px solid var(--canvas-dark);
+  border: 2px solid var(--canvas-dark);
 }
+
+.tribe-cila .card-img { border-color: #c4763e; }
+.tribe-kalo .card-img { border-color: #5a8a5e; }
+.tribe-vatu .card-img { border-color: #6a7ab5; }
 
 .card-img img {
   width: 100%;

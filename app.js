@@ -535,7 +535,7 @@ async function renderSubmit(app) {
     for (const c of tribeContestants) {
       const firstName = c.name.split(' ')[0];
       const lastName = c.name.split(' ').slice(1).join(' ');
-      html += `<button type="button" class="contestant-card" data-name="${c.name}">`;
+      html += `<button type="button" class="contestant-card tribe-${c.tribe || ''}" data-name="${c.name}">`;
       if (c.image) {
         const smallImg = c.image.replace('-1024x683', '-150x150').replace('-1024x682', '-150x150');
         html += `<div class="card-img"><img src="${smallImg}" alt="${c.name}" loading="lazy"></div>`;
@@ -668,7 +668,8 @@ async function renderSubmit(app) {
 function thumbnail(c) {
   if (!c || !c.image) return '';
   const src = c.image.replace('-1024x683', '-150x150').replace('-1024x682', '-150x150');
-  return `<img class="inline-headshot" src="${src}" alt="">`;
+  const tribe = c.tribe ? ` tribe-border-${c.tribe}` : '';
+  return `<img class="inline-headshot${tribe}" src="${src}" alt="">`;
 }
 
 function ordinal(n) {
