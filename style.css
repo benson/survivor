@@ -32,8 +32,8 @@ body {
 a { color: var(--terracotta); text-decoration: none; }
 a:hover { color: var(--terracotta-dark); }
 
-/* ascii art header */
-.ascii-header {
+/* site header */
+.site-header {
   background:
     repeating-linear-gradient(90deg,
       var(--weathered-brown) 0px, var(--weathered-brown) 8px,
@@ -41,13 +41,13 @@ a:hover { color: var(--terracotta-dark); }
       var(--wood-dark) 9px, var(--wood-dark) 14px,
       #52392c 14px, #52392c 15px
     );
-  padding: 14px 8px 12px;
-  overflow: hidden;
+  padding: 16px 20px;
   border-bottom: 4px solid var(--rope-tan);
   position: relative;
+  text-align: center;
 }
 
-.ascii-header::after {
+.site-header::after {
   content: "";
   position: absolute;
   bottom: 0; left: 0; right: 0;
@@ -55,17 +55,12 @@ a:hover { color: var(--terracotta-dark); }
   background: repeating-linear-gradient(90deg, var(--hemp) 0px, var(--rope-tan) 6px, var(--hemp) 12px);
 }
 
-.ascii-art {
-  font-family: "Courier New", Courier, "Lucida Console", monospace;
-  font-size: 6px;
-  line-height: 1.15;
+.header-title {
+  font-size: 1.1rem;
+  font-weight: 700;
   color: var(--rope-tan);
-  white-space: pre;
-  text-align: center;
-  text-transform: none;
-  letter-spacing: 0;
+  letter-spacing: 0.14em;
   text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
-  overflow-x: auto;
 }
 
 /* main content */
@@ -823,8 +818,8 @@ footer {
 /* desktop */
 @media (min-width: 601px) {
   .content { padding: 30px 30px 80px; }
-  .ascii-header { padding: 24px 30px 20px; }
-  .ascii-art { font-size: 10px; letter-spacing: 1px; }
+  .site-header { padding: 20px 30px; }
+  .header-title { font-size: 1.25rem; }
   .picks { font-size: 0.85rem; }
   section { margin-top: 44px; }
   .contestant-grid { grid-template-columns: repeat(4, 1fr); }
