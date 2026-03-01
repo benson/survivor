@@ -241,13 +241,18 @@ async function renderSeason(app, seasonId) {
     const cls = s.id === seasonId ? 'active' : '';
     html += `<a href="#/season/${s.id}" class="${cls}">${s.name}</a>`;
   }
+  html += `<a href="#/history" class="history-link">history</a>`;
   html += `</nav>`;
 
   html += `<h1>${season.name}</h1>`;
   if (isActive) {
     const eliminated = contestants.filter(c => c.placement != null).length;
     const remaining = season.contestantCount - eliminated;
-    html += `<p class="subtitle">${remaining} remain &mdash; ${eliminated} eliminated</p>`;
+    if (eliminated === 0) {
+      html += `<p class="subtitle">${season.contestantCount} contestants</p>`;
+    } else {
+      html += `<p class="subtitle">${remaining} remain &mdash; ${eliminated} eliminated</p>`;
+    }
   } else {
     html += `<p class="subtitle">final results</p>`;
   }
@@ -422,7 +427,7 @@ async function renderPlayer(app, seasonId, playerName) {
   const standings = computeStandings(season, contestants, picks);
   const result = standings.find(p => p.name === playerName);
   if (!result) {
-    app.innerHTML = `<p>player "${playerName}" not found</p>`;
+    app.innerHTML = `<a href="#/season/${seasonId}" class="back">&larr; back to ${season.name}</a><p>player "${playerName}" not found</p>`;
     return;
   }
 
@@ -439,7 +444,7 @@ async function renderPlayer(app, seasonId, playerName) {
     if (!c) continue;
     const placementStr = c.placement != null ? ordinal(c.placement) : 'active';
     const calc = pick.swappedOut ? '&larr; swapped out' : '';
-    html += `<tr><td>${c.name} (${placementStr})</td><td class="calc">${calc}</td><td class="bp">${pick.swappedOut ? `<s>${pick.total}</s>` : pick.total}</td></tr>`;
+    html += `<tr><td>${thumbnail(c)}${c.name} (${placementStr})</td><td class="calc">${calc}</td><td class="bp">${pick.swappedOut ? `<s>${pick.total}</s>` : pick.total}</td></tr>`;
     if (pick.bonus > 0 && !pick.swappedOut) {
       html += `<tr class="bonus-row"><td colspan="2">&nbsp;&nbsp;gameplay bonuses</td><td class="bp">+${pick.bonus}</td></tr>`;
     }
@@ -449,9 +454,9 @@ async function renderPlayer(app, seasonId, playerName) {
     if (!c) continue;
     const placementStr = c.placement != null ? ordinal(c.placement) : 'active';
     if (alt.swappedIn) {
-      html += `<tr><td>${c.name} (${placementStr})</td><td class="calc">&larr; swapped in</td><td class="bp">${alt.total}</td></tr>`;
+      html += `<tr><td>${thumbnail(c)}${c.name} (${placementStr})</td><td class="calc">&larr; swapped in</td><td class="bp">${alt.total}</td></tr>`;
     } else {
-      html += `<tr class="bonus-row"><td colspan="2">alt ${c.name} not used</td><td class="bp">&mdash;</td></tr>`;
+      html += `<tr class="bonus-row"><td colspan="2">alt ${thumbnail(c)}${c.name} not used</td><td class="bp">&mdash;</td></tr>`;
     }
   }
   if (result.winnerBonus > 0) html += `<tr class="bonus-row"><td colspan="2">winner bonus</td><td class="bp">+${result.winnerBonus}</td></tr>`;
@@ -503,7 +508,7 @@ async function renderSubmit(app) {
   } catch (e) {}
 
   const totalSlots = season.picksPerPlayer + season.alternates;
-  const tribes = ['cila', 'kalo', 'vatu'];
+  const tribes = [...new Set(contestants.map(c => c.tribe).filter(Boolean))];
 
   let html = `<a href="#/" class="back">&larr; back</a>`;
   html += `<h1>submit picks — ${season.name}</h1>`;
@@ -607,8 +612,8 @@ async function renderSubmit(app) {
     });
   });
 
-  // submit handler
-  submitBtn.addEventListener('click', async () => {
+  // submit handler — show confirmation first
+  submitBtn.addEventListener('click', () => {
     const status = document.getElementById('submit-status');
     const name = document.getElementById('player-name').value.trim().toLowerCase();
     if (!name) { status.textContent = 'enter your name'; status.className = 'submit-status error'; return; }
@@ -628,35 +633,67 @@ async function renderSubmit(app) {
     const picks = selected.slice(0, season.picksPerPlayer);
     const alternates = selected.slice(season.picksPerPlayer);
 
-    submitBtn.disabled = true;
-    status.textContent = 'submitting...';
-    status.className = 'submit-status';
-
-    try {
-      const res = await fetch(`${WORKER_URL}/picks`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ season: season.id, name, picks, alternates })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        status.textContent = 'picks submitted! redirecting...';
-        status.className = 'submit-status success';
-        delete seasonDataCache[season.id];
-        setTimeout(() => { location.hash = '#/'; }, 1000);
-      } else {
-        let msg = 'submission failed';
-        try { const data = await res.json(); msg = data.error || msg; } catch (e) {}
-        status.textContent = msg;
-        status.className = 'submit-status error';
-        submitBtn.disabled = false;
-      }
-    } catch (err) {
-      console.error('pick submission error:', err);
-      status.textContent = 'network error — try again';
-      status.className = 'submit-status error';
-      submitBtn.disabled = false;
+    // show confirmation overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'confirm-overlay';
+    let confirmHTML = `<div class="confirm-box">`;
+    confirmHTML += `<h2>confirm your picks</h2>`;
+    confirmHTML += `<p class="confirm-name">${name}</p>`;
+    confirmHTML += `<ol class="confirm-picks">`;
+    for (const p of picks) {
+      const c = contestants.find(x => x.name === p);
+      confirmHTML += `<li>${thumbnail(c)}${p}</li>`;
     }
+    confirmHTML += `</ol>`;
+    if (alternates.length > 0) {
+      confirmHTML += `<p class="confirm-alt-label">alternate</p>`;
+      for (const a of alternates) {
+        const c = contestants.find(x => x.name === a);
+        confirmHTML += `<p class="confirm-alt">${thumbnail(c)}${a}</p>`;
+      }
+    }
+    confirmHTML += `<div class="confirm-buttons">`;
+    confirmHTML += `<button type="button" class="confirm-go">submit</button>`;
+    confirmHTML += `<button type="button" class="confirm-cancel">go back</button>`;
+    confirmHTML += `</div>`;
+    confirmHTML += `<div class="confirm-status"></div>`;
+    confirmHTML += `</div>`;
+    overlay.innerHTML = confirmHTML;
+    document.body.appendChild(overlay);
+
+    overlay.querySelector('.confirm-cancel').addEventListener('click', () => overlay.remove());
+
+    overlay.querySelector('.confirm-go').addEventListener('click', async () => {
+      const goBtn = overlay.querySelector('.confirm-go');
+      const cStatus = overlay.querySelector('.confirm-status');
+      goBtn.disabled = true;
+      cStatus.textContent = 'submitting...';
+
+      try {
+        const res = await fetch(`${WORKER_URL}/picks`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ season: season.id, name, picks, alternates })
+        });
+        if (res.ok) {
+          cStatus.textContent = 'picks submitted!';
+          cStatus.className = 'confirm-status success';
+          delete seasonDataCache[season.id];
+          setTimeout(() => { overlay.remove(); location.hash = '#/'; }, 1200);
+        } else {
+          let msg = 'submission failed';
+          try { const data = await res.json(); msg = data.error || msg; } catch (e) {}
+          cStatus.textContent = msg;
+          cStatus.className = 'confirm-status error';
+          goBtn.disabled = false;
+        }
+      } catch (err) {
+        console.error('pick submission error:', err);
+        cStatus.textContent = 'network error — try again';
+        cStatus.className = 'confirm-status error';
+        goBtn.disabled = false;
+      }
+    });
   });
 }
 
