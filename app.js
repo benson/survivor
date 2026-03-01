@@ -469,7 +469,8 @@ async function renderPlayer(app, seasonId, playerName) {
 
 async function renderHistory(app) {
   const seasons = await loadSeasons();
-  let html = `<h1>past seasons</h1>`;
+  let html = `<a href="#/" class="back">&larr; back</a>`;
+  html += `<h1>past seasons</h1>`;
   html += `<div class="history-list">`;
   for (const s of [...seasons].reverse()) {
     html += `<a href="#/season/${s.id}" class="history-card">
