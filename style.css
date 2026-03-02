@@ -918,6 +918,6 @@ footer {
   .picks { font-size: 0.85rem; }
   section { margin-top: 44px; }
   .contestant-grid { grid-template-columns: repeat(4, 1fr); }
-  .pick-slot { max-width: 90px; }
+  .pick-slot { max-width: none; }
   .card-img { width: 64px; height: 64px; }
 }
