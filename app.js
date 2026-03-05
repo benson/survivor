@@ -231,7 +231,7 @@ async function renderSeason(app, seasonId) {
   const isActive = season.status === 'active';
   const now = new Date();
   const deadline = season.submissionDeadline ? new Date(season.submissionDeadline) : null;
-  const submissionsOpen = isActive && deadline && now < deadline;
+  const submissionsOpen = isActive && (!deadline || now < deadline);
 
   let html = '';
 
@@ -259,8 +259,12 @@ async function renderSeason(app, seasonId) {
 
   // submit callout (active season, submissions open, no picks yet)
   if (submissionsOpen) {
-    const deadlineStr = deadline.toLocaleDateString('en-us', { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
-    html += `<div class="submit-callout"><a href="#/submit">submit your picks for ${season.name} &rarr;</a><span class="deadline-note">deadline: ${deadlineStr}</span></div>`;
+    html += `<div class="submit-callout"><a href="#/submit">submit your picks for ${season.name} &rarr;</a>`;
+    if (deadline) {
+      const deadlineStr = deadline.toLocaleDateString('en-us', { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
+      html += `<span class="deadline-note">deadline: ${deadlineStr}</span>`;
+    }
+    html += `</div>`;
   }
 
   // winner callout (completed seasons)
