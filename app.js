@@ -231,7 +231,7 @@ async function renderSeason(app, seasonId) {
   const isActive = season.status === 'active';
   const now = new Date();
   const deadline = season.submissionDeadline ? new Date(season.submissionDeadline) : null;
-  const submissionsOpen = isActive && (!deadline || now < deadline);
+  const submissionsOpen = isActive && season.submissionsOpen !== false && (!deadline || now < deadline);
 
   let html = '';
 
@@ -498,8 +498,8 @@ async function renderSubmit(app) {
   const now = new Date();
   const deadline = season.submissionDeadline ? new Date(season.submissionDeadline) : null;
 
-  if (deadline && now >= deadline) {
-    app.innerHTML = `<h1>submissions closed</h1><p class="subtitle">the deadline for ${season.name} has passed.</p><p><a href="#/" class="back">&larr; back to standings</a></p>`;
+  if (season.submissionsOpen === false || (deadline && now >= deadline)) {
+    app.innerHTML = `<h1>submissions closed</h1><p class="subtitle">submissions for ${season.name} are closed.</p><p><a href="#/" class="back">&larr; back to standings</a></p>`;
     return;
   }
 

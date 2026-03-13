@@ -7,6 +7,7 @@
   "wikiSlug": "Survivor_50:_In_the_Hands_of_the_Fans",
   "picksPerPlayer": 6,
   "alternates": 1,
+  "submissionsOpen": false,
   "scoring": {
     "winnerBonus": 5,
     "runnerUpBonus": 3,
