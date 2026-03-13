@@ -1,1 +1,37 @@
-[]
+[
+  {
+    "name": "ellie",
+    "picks": ["emily flippen", "mike white", "rizo velovic", "genevieve mushaluk", "ozzy lusth", "q burdette"],
+    "alternates": ["jonathan young"]
+  },
+  {
+    "name": "benson's awesome team",
+    "picks": ["rick devens", "emily flippen", "kamilla karthigesu", "charlie davis", "rizo velovic", "genevieve mushaluk"],
+    "alternates": ["savannah louie"]
+  },
+  {
+    "name": "lil",
+    "picks": ["charlie davis", "q burdette", "genevieve mushaluk", "rizo velovic", "emily flippen", "joe hunter"],
+    "alternates": ["christian hubicki"]
+  },
+  {
+    "name": "mom(2025 's winner!)",
+    "picks": ["charlie davis", "aubry bracco", "chrissy hofbeck", "rizo velovic", "savannah louie", "christian hubicki"],
+    "alternates": ["rick devens"]
+  },
+  {
+    "name": "dad",
+    "picks": ["tiffany ervin", "joe hunter", "rizo velovic", "q burdette", "charlie davis", "kamilla karthigesu"],
+    "alternates": ["emily flippen"]
+  },
+  {
+    "name": "i love joe (sameh's team)",
+    "picks": ["joe hunter", "mike white", "christian hubicki", "dee valladares", "rizo velovic", "kamilla karthigesu"],
+    "alternates": ["jonathan young"]
+  },
+  {
+    "name": "annie",
+    "picks": ["christian hubicki", "aubry bracco", "joe hunter", "emily flippen", "colby donaldson", "dee valladares"],
+    "alternates": ["coach wade"]
+  }
+]
