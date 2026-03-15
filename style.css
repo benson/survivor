@@ -355,7 +355,7 @@ p { line-height: 1.65; font-size: 0.95rem; color: var(--faded-ink); }
 
 .pick-card-row.swapped-out { opacity: 0.4; text-decoration: line-through; }
 .pick-card-row.swapped-in .pick-card-name { color: var(--terracotta); }
-.pick-card-row.pre-jury { opacity: 0.55; font-style: italic; }
+.pick-card-row.pre-jury { opacity: 0.4; text-decoration: line-through; }
 
 .inline-headshot {
   width: 20px;
