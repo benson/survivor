@@ -339,6 +339,7 @@ p { line-height: 1.65; font-size: 0.95rem; color: var(--faded-ink); }
 .pick.winner { color: var(--terracotta-dark); font-weight: 700; text-shadow: 0 0 0.5px var(--terracotta-dark); }
 .pick.runner-up { color: var(--weathered-brown); font-weight: 700; }
 .pick.pre-jury { color: var(--ash); opacity: 0.55; font-style: italic; }
+.pick .pts.projected { color: var(--rope-tan); font-style: italic; }
 .pick.swapped-out { text-decoration: line-through; color: var(--ash); opacity: 0.4; }
 
 .alt-col { border-left: 2px dashed var(--rope-tan); }
@@ -425,6 +426,17 @@ p { line-height: 1.65; font-size: 0.95rem; color: var(--faded-ink); }
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   color: var(--weathered-brown);
+}
+
+.breakdown-table .projected-row td {
+  color: var(--ash);
+}
+.breakdown-table .projected-row .bp {
+  color: var(--rope-tan);
+  font-style: italic;
+}
+.breakdown-table .projected-row .calc {
+  color: var(--rope-tan);
 }
 
 .breakdown-table .bonus-row td {

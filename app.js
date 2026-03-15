@@ -63,14 +63,20 @@ function computeStandings(season, contestants, picks) {
   for (const c of contestants) contestantMap.set(c.name, c);
   const { contestantCount, scoring } = season;
 
+  // active contestants get a floor score: the minimum they're guaranteed
+  // (as if they were the very next person eliminated)
+  const eliminatedCount = contestants.filter(c => c.placement != null).length;
+  const activeFloor = eliminatedCount > 0 ? eliminatedCount + 1 : 0;
+
   const results = picks.map(player => {
     const pickContestants = player.picks.map(name => contestantMap.get(name));
     const altContestants = (player.alternates || []).map(name => contestantMap.get(name));
 
     // placement points for a contestant
     const placementPts = c => {
-      if (!c || c.placement == null) return 0;
-      return contestantCount + 1 - c.placement;
+      if (!c) return 0;
+      if (c.placement != null) return contestantCount + 1 - c.placement;
+      return activeFloor;
     };
 
     // gameplay bonus points for a contestant
@@ -173,7 +179,7 @@ function computeStandings(season, contestants, picks) {
   });
 
   results.sort((a, b) => b.total - a.total);
-  return results;
+  return { standings: results, activeFloor };
 }
 
 // --- routing ---
@@ -234,7 +240,7 @@ async function renderHome(app) {
 
 async function renderSeason(app, seasonId) {
   const { season, contestants, picks, episodes } = await loadSeasonData(seasonId);
-  const standings = computeStandings(season, contestants, picks);
+  const { standings, activeFloor } = computeStandings(season, contestants, picks);
   const seasons = await loadSeasons();
 
   const isActive = season.status === 'active';
@@ -337,6 +343,7 @@ async function renderSeason(app, seasonId) {
         else if (c && c.placement != null && !c.jury) cls += ' pre-jury';
         html += `<td><span class="${cls}">${thumbnail(c)}${name}`;
         if (c && c.placement != null) html += ` <span class="pts">(${pick.total})</span>`;
+        else if (c && pick.total > 0) html += ` <span class="pts projected">(${pick.total}+)</span>`;
         html += `</span></td>`;
       }
       for (const alt of result.alternates) {
@@ -346,6 +353,7 @@ async function renderSeason(app, seasonId) {
         if (alt.swappedIn) cls += ' swapped-in';
         html += `<td class="alt-col"><span class="${cls}">${thumbnail(c)}${name}`;
         if (c && c.placement != null) html += ` <span class="pts">(${alt.total})</span>`;
+        else if (c && alt.total > 0) html += ` <span class="pts projected">(${alt.total}+)</span>`;
         html += `</span></td>`;
       }
       html += `</tr>`;
@@ -355,7 +363,7 @@ async function renderSeason(app, seasonId) {
 
   // scoring rules
   html += `<section><h2>scoring</h2><div class="scoring-rules">`;
-  html += `<p><b>placement points</b> &mdash; each pick earns points based on how far they got. winner = ${season.contestantCount} pts, first out = 1 pt.</p>`;
+  html += `<p><b>placement points</b> &mdash; each pick earns points based on how far they got. winner = ${season.contestantCount} pts, first out = 1 pt.${activeFloor > 0 ? ` active picks are guaranteed at least ${activeFloor} pts.` : ''}</p>`;
   html += `<p><b>alternate swap</b> &mdash; your alternate replaces your earliest-eliminated pick, but only if it's an upgrade.</p>`;
   html += `<p><b>bonuses</b> &mdash; +${season.scoring.winnerBonus} for picking the winner. +${season.scoring.runnerUpBonus} for picking the runner-up.</p>`;
   if (season.scoring.immunityWin) {
@@ -375,16 +383,19 @@ async function renderSeason(app, seasonId) {
       for (const pick of result.picks) {
         const c = pick.contestant;
         if (!c) continue;
-        const placementStr = c.placement != null ? ordinal(c.placement) : 'active';
-        const calc = pick.swappedOut ? '&larr; swapped out' : '';
+        const isActive = c.placement == null;
+        const placementStr = isActive ? 'active' : ordinal(c.placement);
+        const calc = pick.swappedOut ? '&larr; swapped out' : (isActive ? `${activeFloor}+ min` : '');
         const pts = pick.swappedOut ? `<s>${pick.total}</s>` : pick.total;
-        html += `<tr><td>${thumbnail(c)}${c.name.split(' ')[0]} (${placementStr})</td><td class="calc">${calc}</td><td class="bp">${pts}</td></tr>`;
+        const trCls = isActive ? ' class="projected-row"' : '';
+        html += `<tr${trCls}><td>${thumbnail(c)}${c.name.split(' ')[0]} (${placementStr})</td><td class="calc">${calc}</td><td class="bp">${pts}${isActive ? '+' : ''}</td></tr>`;
       }
 
       for (const alt of result.alternates) {
         const c = alt.contestant;
         if (!c) continue;
-        const placementStr = c.placement != null ? ordinal(c.placement) : 'active';
+        const isActive = c.placement == null;
+        const placementStr = isActive ? 'active' : ordinal(c.placement);
         if (alt.swappedIn) {
           html += `<tr><td>${thumbnail(c)}${c.name.split(' ')[0]} (${placementStr})</td><td class="calc">&larr; swapped in</td><td class="bp">${alt.total}</td></tr>`;
         } else {
@@ -489,7 +500,7 @@ async function renderEpisodes(app, seasonId) {
 
 async function renderPlayer(app, seasonId, playerName) {
   const { season, contestants, picks } = await loadSeasonData(seasonId);
-  const standings = computeStandings(season, contestants, picks);
+  const { standings, activeFloor } = computeStandings(season, contestants, picks);
   const result = standings.find(p => p.name === playerName);
   if (!result) {
     app.innerHTML = `<a href="#/season/${seasonId}" class="back">&larr; back to ${season.name}</a><p>player "${playerName}" not found</p>`;
