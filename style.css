@@ -899,6 +899,105 @@ p { line-height: 1.65; font-size: 0.95rem; color: var(--faded-ink); }
 .history-card:hover { border-color: var(--rope-tan); }
 .history-status { font-size: 0.72rem; color: var(--ash); font-weight: 400; }
 
+/* episodes link */
+.episodes-link {
+  margin: 20px 0;
+}
+
+.episodes-link a {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--terracotta);
+  border-bottom: 1px solid var(--rope-tan);
+  padding-bottom: 1px;
+}
+
+.episodes-link a:hover {
+  color: var(--terracotta-dark);
+  border-bottom-color: var(--terracotta-dark);
+}
+
+/* episode cards */
+.episode-card {
+  background: var(--aged-white);
+  border: 1px solid var(--canvas-dark);
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.episode-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.episode-number {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--terracotta);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.episode-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--weathered-brown);
+  font-style: italic;
+}
+
+.episode-date {
+  font-size: 0.75rem;
+  color: var(--ash);
+  margin-left: auto;
+}
+
+.episode-summary {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--faded-ink);
+  margin-bottom: 12px;
+}
+
+.episode-eliminated {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  background: rgba(92, 64, 51, 0.04);
+  border-left: 3px solid var(--rope-tan);
+}
+
+.episode-elim {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--weathered-brown);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.episode-method {
+  font-size: 0.75rem;
+  color: var(--ash);
+  font-style: italic;
+}
+
+.episode-impact {
+  font-size: 0.82rem;
+  color: var(--terracotta-dark);
+  font-weight: 700;
+  padding: 8px 12px;
+  background: rgba(181, 86, 62, 0.06);
+  border-left: 3px solid var(--terracotta);
+  line-height: 1.5;
+}
+
 /* footer */
 footer {
   margin-top: 60px;

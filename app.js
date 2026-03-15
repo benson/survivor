@@ -47,7 +47,11 @@ async function loadSeasonData(id, bustCache = false) {
       }
     }
 
-    seasonDataCache[id] = { season, contestants, picks };
+    // load episodes if available
+    let episodes = [];
+    try { episodes = await fetchJSON(`data/${id}/episodes.json`); } catch (e) {}
+
+    seasonDataCache[id] = { season, contestants, picks, episodes };
   }
   return seasonDataCache[id];
 }
@@ -181,6 +185,7 @@ function getRoute() {
   if (parts[0] === 'submit') return { view: 'submit' };
   if (parts[0] === 'history') return { view: 'history' };
   if (parts[0] === 'season' && parts[1]) {
+    if (parts[2] === 'episodes') return { view: 'episodes', seasonId: parts[1] };
     if (parts[2]) return { view: 'player', seasonId: parts[1], player: decodeURIComponent(parts[2]) };
     return { view: 'season', seasonId: parts[1] };
   }
@@ -197,6 +202,7 @@ async function router() {
       case 'home': await renderHome(app); break;
       case 'submit': await renderSubmit(app); break;
       case 'season': await renderSeason(app, route.seasonId); break;
+      case 'episodes': await renderEpisodes(app, route.seasonId); break;
       case 'player': await renderPlayer(app, route.seasonId, route.player); break;
       case 'history': await renderHistory(app); break;
       default: app.innerHTML = '<p>not found</p>';
@@ -227,7 +233,7 @@ async function renderHome(app) {
 }
 
 async function renderSeason(app, seasonId) {
-  const { season, contestants, picks } = await loadSeasonData(seasonId);
+  const { season, contestants, picks, episodes } = await loadSeasonData(seasonId);
   const standings = computeStandings(season, contestants, picks);
   const seasons = await loadSeasons();
 
@@ -283,6 +289,11 @@ async function renderSeason(app, seasonId) {
         <span class="winner-label">draft winner</span>
         <span class="winner-name-callout">${winner.name} &mdash; ${winner.total} pts</span>
       </div>`;
+  }
+
+  // episode recap link
+  if (episodes.length > 0) {
+    html += `<div class="episodes-link"><a href="#/season/${seasonId}/episodes">episode recaps &rarr;</a></div>`;
   }
 
   // standings table
@@ -424,6 +435,42 @@ async function renderSeason(app, seasonId) {
       </li>`;
     }
     html += `</ol></section>`;
+  }
+
+  app.innerHTML = html;
+}
+
+async function renderEpisodes(app, seasonId) {
+  const { season, contestants, picks, episodes } = await loadSeasonData(seasonId);
+  const contestantMap = new Map();
+  for (const c of contestants) contestantMap.set(c.name, c);
+
+  let html = `<a href="#/season/${seasonId}" class="back">&larr; back to ${season.name}</a>`;
+  html += `<h1>episode recaps</h1>`;
+  html += `<p class="subtitle">${season.name}</p>`;
+
+  for (const ep of episodes) {
+    const date = new Date(ep.airDate + 'T00:00:00').toLocaleDateString('en-us', { month: 'short', day: 'numeric' });
+    html += `<div class="episode-card">`;
+    html += `<div class="episode-header">`;
+    html += `<span class="episode-number">episode ${ep.number}</span>`;
+    html += `<span class="episode-title">"${ep.title}"</span>`;
+    html += `<span class="episode-date">${date}</span>`;
+    html += `</div>`;
+    html += `<p class="episode-summary">${ep.summary}</p>`;
+
+    if (ep.eliminated.length > 0) {
+      html += `<div class="episode-eliminated">`;
+      for (const name of ep.eliminated) {
+        const c = contestantMap.get(name);
+        html += `<span class="episode-elim">${thumbnail(c)}${name}</span>`;
+      }
+      html += `<span class="episode-method">${ep.method}</span>`;
+      html += `</div>`;
+    }
+
+    html += `<div class="episode-impact">${ep.scoreImpact}</div>`;
+    html += `</div>`;
   }
 
   app.innerHTML = html;
