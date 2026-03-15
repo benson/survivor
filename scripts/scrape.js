@@ -26,62 +26,106 @@ function parseContestants(html, existingContestants) {
   const contestantMap = new Map();
   for (const c of existingContestants) contestantMap.set(c.name, { ...c });
 
-  // look for the contestant/voting history table
-  // fandom wiki uses tables with class "wikitable" for contestant info
+  // find the contestant table — has both "contestant"/"castaway" and "finish" in headers
   $('table.wikitable').each((_, table) => {
     const $table = $(table);
-    const headers = [];
-    $table.find('tr').first().find('th').each((_, th) => {
-      headers.push($(th).text().trim().toLowerCase());
-    });
+    const headerText = $table.find('tr').first().text().trim().toLowerCase();
+    if (!/contestant|castaway|player/.test(headerText)) return;
+    if (!/finish|placement|place/.test(headerText)) return;
 
-    // contestant table typically has "contestant" or "castaway" column and "finish" or "placement"
-    const nameIdx = headers.findIndex(h => h.includes('contestant') || h.includes('castaway') || h.includes('player'));
-    const finishIdx = headers.findIndex(h => h.includes('finish') || h.includes('placement') || h.includes('place'));
-
-    if (nameIdx === -1 || finishIdx === -1) return;
-
+    // scan each data row: match contestant by name, find finish cell by pattern
     $table.find('tr').slice(1).each((_, row) => {
       const cells = $(row).find('td');
-      if (cells.length <= Math.max(nameIdx, finishIdx)) return;
+      if (cells.length < 3) return;
 
-      const rawName = $(cells[nameIdx]).text().trim().toLowerCase();
-      const rawFinish = $(cells[finishIdx]).text().trim().toLowerCase();
+      // collect all cell texts
+      const cellTexts = [];
+      cells.each((_, td) => cellTexts.push($(td).text().trim().toLowerCase()));
+      const rowText = cellTexts.join(' | ');
 
-      // match to existing contestant by first/last name
+      // match a contestant name in any cell
       let matched = null;
       for (const [name] of contestantMap) {
-        if (rawName.includes(name) || name.includes(rawName) ||
-            rawName.split(' ').some(part => name.includes(part) && part.length > 2)) {
+        const lastName = name.split(' ').slice(1).join(' ');
+        if (lastName.length > 2 && rowText.includes(lastName)) {
           matched = name;
           break;
         }
       }
-
       if (!matched) return;
+
+      // find the finish cell — looks for "voted out", "evacuated", "sole survivor", etc.
+      const finishPattern = /voted out|evacuated|medevac|quit|sole survivor|winner|runner|eliminated|day \d/i;
+      let rawFinish = '';
+      for (const text of cellTexts) {
+        if (finishPattern.test(text)) {
+          rawFinish = text;
+          break;
+        }
+      }
+      if (!rawFinish) return;
+
       const contestant = contestantMap.get(matched);
 
-      // parse placement
-      const placementMatch = rawFinish.match(/(\d+)/);
-      if (placementMatch) {
-        contestant.placement = parseInt(placementMatch[1]);
-      }
-
-      // detect method
-      if (rawFinish.includes('sole survivor') || rawFinish.includes('winner')) {
+      // parse ordinal placement (e.g. "1st voted out" → 1, "3rd voted out" → 3)
+      // this is elimination order, not final placement — convert later
+      const ordinalMatch = rawFinish.match(/(\d+)(?:st|nd|rd|th)\s*(?:voted out|eliminated)/i);
+      if (ordinalMatch) {
+        // ordinal is elimination order: 1st out = last place
+        contestant._elimOrder = parseInt(ordinalMatch[1]);
+        contestant.method = 'voted out';
+      } else if (/evacuated|medevac/i.test(rawFinish)) {
+        // try to infer order from "Day N" if present
+        const dayMatch = rawFinish.match(/day\s*(\d+)/i);
+        contestant.method = 'medevac';
+        if (dayMatch) contestant._elimDay = parseInt(dayMatch[1]);
+      } else if (/sole survivor|winner/i.test(rawFinish)) {
         contestant.method = 'winner';
         contestant.placement = 1;
-      } else if (rawFinish.includes('runner')) {
+      } else if (/runner/i.test(rawFinish)) {
         contestant.method = 'runner-up';
-      } else if (rawFinish.includes('medevac') || rawFinish.includes('medical')) {
-        contestant.method = 'medevac';
-      } else if (rawFinish.includes('quit')) {
+      } else if (/quit/i.test(rawFinish)) {
         contestant.method = 'quit';
       } else {
         contestant.method = 'voted out';
       }
     });
   });
+
+  // voting history table ("Voted Out" row) is the authoritative elimination order
+  // it includes all eliminations (voted out, medevacs, quits) in chronological order
+  $('table.wikitable').each((_, table) => {
+    const $table = $(table);
+    $table.find('tr').each((_, row) => {
+      const firstCell = $(row).find('td, th').first().text().trim().toLowerCase();
+      if (!/^voted out/.test(firstCell)) return;
+
+      let elimOrder = 0;
+      $(row).find('td, th').slice(1).each((_, td) => {
+        const text = $(td).text().trim().toLowerCase();
+        if (!text || text === 'tbd') return;
+        elimOrder++;
+        for (const [name, contestant] of contestantMap) {
+          const firstName = name.split(' ')[0];
+          const lastName = name.split(' ').slice(1).join(' ');
+          if (text.includes(firstName) || (lastName.length > 2 && text.includes(lastName))) {
+            contestant._elimOrder = elimOrder; // always overwrite
+            break;
+          }
+        }
+      });
+    });
+  });
+
+  // convert elimination order to placement (1st out = last place)
+  const totalContestants = existingContestants.length;
+  for (const [, c] of contestantMap) {
+    if (c._elimOrder) {
+      c.placement = totalContestants - c._elimOrder + 1;
+    }
+    delete c._elimOrder;
+    delete c._elimDay;
+  }
 
   // try to scrape immunity wins from challenge results
   const immunityPattern = /individual immunity/i;

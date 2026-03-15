@@ -35,8 +35,8 @@
   {
     "name": "jenna lewis-dougherty",
     "tribe": "cila",
-    "placement": null,
-    "method": null,
+    "placement": 24,
+    "method": "voted out",
     "jury": false,
     "note": null,
     "bonuses": {},
@@ -79,8 +79,8 @@
   {
     "name": "savannah louie",
     "tribe": "cila",
-    "placement": null,
-    "method": null,
+    "placement": 22,
+    "method": "voted out",
     "jury": false,
     "note": null,
     "bonuses": {},
@@ -222,8 +222,8 @@
   {
     "name": "kyle fraser",
     "tribe": "vatu",
-    "placement": null,
-    "method": null,
+    "placement": 23,
+    "method": "medevac",
     "jury": false,
     "note": null,
     "bonuses": {},
@@ -233,8 +233,8 @@
   {
     "name": "q burdette",
     "tribe": "vatu",
-    "placement": null,
-    "method": null,
+    "placement": 21,
+    "method": "voted out",
     "jury": false,
     "note": null,
     "bonuses": {},
