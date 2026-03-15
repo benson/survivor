@@ -358,6 +358,7 @@ async function renderSeason(app, seasonId) {
         const name = c ? c.name.split(' ')[0] : '?';
         let cls = 'pick-card-row pick-card-alt';
         if (alt.swappedIn) cls += ' swapped-in';
+        else if (c && c.placement != null && !c.jury) cls += ' pre-jury';
         const ptsCls = c && c.placement == null ? 'pick-card-pts-val projected' : 'pick-card-pts-val';
         const ptsVal = c && c.placement != null ? alt.total : (c && alt.total > 0 ? alt.total + '+' : '');
         html += `<div class="${cls}">${thumbnail(c)}<span class="pick-card-name">${name}</span><span class="${ptsCls}">${ptsVal}</span></div>`;
