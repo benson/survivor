@@ -86,8 +86,6 @@ function parseContestants(html, existingContestants) {
         contestant.method = 'runner-up';
       } else if (/quit/i.test(rawFinish)) {
         contestant.method = 'quit';
-      } else {
-        contestant.method = 'voted out';
       }
     });
   });

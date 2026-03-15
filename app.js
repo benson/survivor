@@ -322,7 +322,6 @@ async function renderSeason(app, seasonId) {
 
   // picks grid
   if (picks.length > 0) {
-    /* only show grid when there are picks */
     html += `<section><h2>draft picks</h2>`;
     html += `<p class="section-note">alternates replace your earliest-eliminated pick if beneficial.</p>`;
     html += `<div class="picks-scroll"><table class="picks"><thead><tr><th>player</th>`;
@@ -371,45 +370,8 @@ async function renderSeason(app, seasonId) {
 
   // score breakdowns
   if (picks.length > 0) {
-    /* only show breakdowns when there are picks */
     html += `<section><h2>score breakdowns</h2><div class="breakdowns">`;
-    for (const result of standings) {
-      html += `<div class="breakdown">`;
-      html += `<div class="breakdown-header">${result.name} &mdash; ${result.total}</div>`;
-      html += `<table class="breakdown-table">`;
-
-      for (const pick of result.picks) {
-        const c = pick.contestant;
-        if (!c) continue;
-        const isActive = c.placement == null;
-        const placementStr = isActive ? 'active' : ordinal(c.placement);
-        const calc = pick.swappedOut ? '&larr; swapped out' : (isActive ? `${activeFloor}+ min` : '');
-        const pts = pick.swappedOut ? `<s>${pick.total}</s>` : pick.total;
-        const trCls = isActive ? ' class="projected-row"' : '';
-        html += `<tr${trCls}><td>${thumbnail(c)}${c.name.split(' ')[0]} (${placementStr})</td><td class="calc">${calc}</td><td class="bp">${pts}${isActive ? '+' : ''}</td></tr>`;
-      }
-
-      for (const alt of result.alternates) {
-        const c = alt.contestant;
-        if (!c) continue;
-        const isActive = c.placement == null;
-        const placementStr = isActive ? 'active' : ordinal(c.placement);
-        if (alt.swappedIn) {
-          html += `<tr><td>${thumbnail(c)}${c.name.split(' ')[0]} (${placementStr})</td><td class="calc">&larr; swapped in</td><td class="bp">${alt.total}</td></tr>`;
-        } else {
-          html += `<tr class="bonus-row"><td colspan="2">alt ${thumbnail(c)}${c.name.split(' ')[0]} (${placementStr}) not used</td><td class="bp">&mdash;</td></tr>`;
-        }
-      }
-
-      if (result.winnerBonus > 0) {
-        html += `<tr class="bonus-row"><td colspan="2">winner bonus</td><td class="bp">+${result.winnerBonus}</td></tr>`;
-      }
-      if (result.runnerUpBonus > 0) {
-        html += `<tr class="bonus-row"><td colspan="2">runner-up bonus</td><td class="bp">+${result.runnerUpBonus}</td></tr>`;
-      }
-      html += `<tr class="total-row"><td colspan="2">total</td><td class="bp">${result.total}</td></tr>`;
-      html += `</table></div>`;
-    }
+    for (const result of standings) html += renderBreakdownTable(result, activeFloor);
     html += `</div></section>`;
   }
 
@@ -510,33 +472,8 @@ async function renderPlayer(app, seasonId, playerName) {
   html += `<p class="subtitle">${result.total} points &mdash; ${season.name}</p>`;
 
   html += `<section><h2>breakdown</h2>`;
-  html += `<div class="breakdown"><div class="breakdown-header">${result.name} &mdash; ${result.total}</div>`;
-  html += `<table class="breakdown-table">`;
-
-  for (const pick of result.picks) {
-    const c = pick.contestant;
-    if (!c) continue;
-    const placementStr = c.placement != null ? ordinal(c.placement) : 'active';
-    const calc = pick.swappedOut ? '&larr; swapped out' : '';
-    html += `<tr><td>${thumbnail(c)}${c.name} (${placementStr})</td><td class="calc">${calc}</td><td class="bp">${pick.swappedOut ? `<s>${pick.total}</s>` : pick.total}</td></tr>`;
-    if (pick.bonus > 0 && !pick.swappedOut) {
-      html += `<tr class="bonus-row"><td colspan="2">&nbsp;&nbsp;gameplay bonuses</td><td class="bp">+${pick.bonus}</td></tr>`;
-    }
-  }
-  for (const alt of result.alternates) {
-    const c = alt.contestant;
-    if (!c) continue;
-    const placementStr = c.placement != null ? ordinal(c.placement) : 'active';
-    if (alt.swappedIn) {
-      html += `<tr><td>${thumbnail(c)}${c.name} (${placementStr})</td><td class="calc">&larr; swapped in</td><td class="bp">${alt.total}</td></tr>`;
-    } else {
-      html += `<tr class="bonus-row"><td colspan="2">alt ${thumbnail(c)}${c.name} not used</td><td class="bp">&mdash;</td></tr>`;
-    }
-  }
-  if (result.winnerBonus > 0) html += `<tr class="bonus-row"><td colspan="2">winner bonus</td><td class="bp">+${result.winnerBonus}</td></tr>`;
-  if (result.runnerUpBonus > 0) html += `<tr class="bonus-row"><td colspan="2">runner-up bonus</td><td class="bp">+${result.runnerUpBonus}</td></tr>`;
-  html += `<tr class="total-row"><td colspan="2">total</td><td class="bp">${result.total}</td></tr>`;
-  html += `</table></div></section>`;
+  html += renderBreakdownTable(result, activeFloor, { showFullName: true });
+  html += `</section>`;
 
   app.innerHTML = html;
 }
@@ -786,6 +723,45 @@ function ordinal(n) {
   const s = ['th', 'st', 'nd', 'rd'];
   const v = n % 100;
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+function renderBreakdownTable(result, activeFloor, { showFullName = false } = {}) {
+  let html = `<div class="breakdown">`;
+  html += `<div class="breakdown-header">${result.name} &mdash; ${result.total}</div>`;
+  html += `<table class="breakdown-table">`;
+
+  for (const pick of result.picks) {
+    const c = pick.contestant;
+    if (!c) continue;
+    const isActive = c.placement == null;
+    const name = showFullName ? c.name : c.name.split(' ')[0];
+    const placementStr = isActive ? 'active' : ordinal(c.placement);
+    const calc = pick.swappedOut ? '&larr; swapped out' : (isActive ? `${activeFloor}+ min` : '');
+    const pts = pick.swappedOut ? `<s>${pick.total}</s>` : pick.total;
+    const trCls = isActive ? ' class="projected-row"' : '';
+    html += `<tr${trCls}><td>${thumbnail(c)}${name} (${placementStr})</td><td class="calc">${calc}</td><td class="bp">${pts}${isActive ? '+' : ''}</td></tr>`;
+    if (showFullName && pick.bonus > 0 && !pick.swappedOut) {
+      html += `<tr class="bonus-row"><td colspan="2">&nbsp;&nbsp;gameplay bonuses</td><td class="bp">+${pick.bonus}</td></tr>`;
+    }
+  }
+
+  for (const alt of result.alternates) {
+    const c = alt.contestant;
+    if (!c) continue;
+    const name = showFullName ? c.name : c.name.split(' ')[0];
+    const placementStr = c.placement != null ? ordinal(c.placement) : 'active';
+    if (alt.swappedIn) {
+      html += `<tr><td>${thumbnail(c)}${name} (${placementStr})</td><td class="calc">&larr; swapped in</td><td class="bp">${alt.total}</td></tr>`;
+    } else {
+      html += `<tr class="bonus-row"><td colspan="2">alt ${thumbnail(c)}${name} (${placementStr}) not used</td><td class="bp">&mdash;</td></tr>`;
+    }
+  }
+
+  if (result.winnerBonus > 0) html += `<tr class="bonus-row"><td colspan="2">winner bonus</td><td class="bp">+${result.winnerBonus}</td></tr>`;
+  if (result.runnerUpBonus > 0) html += `<tr class="bonus-row"><td colspan="2">runner-up bonus</td><td class="bp">+${result.runnerUpBonus}</td></tr>`;
+  html += `<tr class="total-row"><td colspan="2">total</td><td class="bp">${result.total}</td></tr>`;
+  html += `</table></div>`;
+  return html;
 }
 
 // --- init ---
