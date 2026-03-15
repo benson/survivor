@@ -33,9 +33,12 @@ async function loadSeasonData(id, bustCache = false) {
           const data = await res.json();
           if (data.picks && data.picks.length > 0) {
             // merge: worker picks override static picks by name
+            // normalize curly quotes to straight for consistent matching
+            const norm = s => s.replace(/[\u2018\u2019\u201C\u201D]/g, c =>
+              c === '\u2018' || c === '\u2019' ? "'" : '"');
             const merged = new Map();
-            for (const p of staticPicks) merged.set(p.name, p);
-            for (const p of data.picks) merged.set(p.name, p);
+            for (const p of staticPicks) merged.set(norm(p.name), p);
+            for (const p of data.picks) merged.set(norm(p.name), p);
             picks = Array.from(merged.values());
           }
         }
