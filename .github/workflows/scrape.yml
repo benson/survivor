@@ -2,7 +2,8 @@ name: scrape wiki
 
 on:
   schedule:
-    - cron: '0 6 * * 4'  # thursday 6am UTC (after wednesday night episodes)
+    # wednesday night → thursday morning UTC (episodes air wednesday evening US)
+    - cron: '0 2,4,6,8 * * 4'  # thursday 2am, 4am, 6am, 8am UTC
   workflow_dispatch:
 
 jobs:
