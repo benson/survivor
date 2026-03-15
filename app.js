@@ -73,11 +73,11 @@ function computeStandings(season, contestants, picks) {
     const altContestants = (player.alternates || []).map(name => contestantMap.get(name));
 
     // placement points for a contestant
-    // useFloor: active picks get the guaranteed minimum, alts do not
-    const placementPts = (c, useFloor = true) => {
+    // active contestants get the guaranteed minimum (floor)
+    const placementPts = c => {
       if (!c) return 0;
       if (c.placement != null) return contestantCount + 1 - c.placement;
-      return useFloor ? activeFloor : 0;
+      return activeFloor;
     };
 
     // gameplay bonus points for a contestant
@@ -90,31 +90,27 @@ function computeStandings(season, contestants, picks) {
       return total;
     };
 
-    const totalPts = (c, useFloor = true) => placementPts(c, useFloor) + bonusPts(c);
+    const totalPts = c => placementPts(c) + bonusPts(c);
 
     // find best alternate swap: replace earliest-eliminated pick with alt if net gain
-    // alts don't get floor points — swap only based on actual placement
     let swapIndex = -1;
     let swapAltIndex = -1;
     if (altContestants.length > 0) {
-      // find the pick with lowest placement points (earliest eliminated)
+      // find the pick with lowest points (only eliminated picks can be swapped out)
       let worstIdx = -1;
       let worstPts = Infinity;
       for (let i = 0; i < pickContestants.length; i++) {
         const c = pickContestants[i];
-        const pp = placementPts(c, false);
-        // only consider eliminated contestants (placement != null) for swapping
-        if (c && c.placement != null && pp < worstPts) {
-          worstPts = pp;
+        if (c && c.placement != null && totalPts(c) < worstPts) {
+          worstPts = totalPts(c);
           worstIdx = i;
         }
       }
 
       if (worstIdx !== -1) {
-        // check each alternate — compare without floor for both sides
         for (let a = 0; a < altContestants.length; a++) {
           const alt = altContestants[a];
-          if (totalPts(alt, false) > totalPts(pickContestants[worstIdx], false)) {
+          if (totalPts(alt) > totalPts(pickContestants[worstIdx])) {
             swapIndex = worstIdx;
             swapAltIndex = a;
             break;
@@ -132,12 +128,11 @@ function computeStandings(season, contestants, picks) {
       swappedOut: i === swapIndex
     }));
 
-    // alts never get floor points
     const activeAlts = altContestants.map((c, a) => ({
       contestant: c,
-      placement: placementPts(c, false),
+      placement: placementPts(c),
       bonus: bonusPts(c),
-      total: totalPts(c, false),
+      total: totalPts(c),
       swappedIn: a === swapAltIndex
     }));
 
