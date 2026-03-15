@@ -469,6 +469,17 @@ async function renderEpisodes(app, seasonId) {
       html += `</div>`;
     }
 
+    if (ep.events && ep.events.length > 0) {
+      html += `<div class="episode-events">`;
+      for (const ev of ep.events) {
+        const c = contestantMap.get(ev.player);
+        const icon = ev.type === 'idolFound' ? '&#x1F48E;' : ev.type === 'idolPlayed' ? '&#x1F6E1;' : ev.type === 'immunityWin' ? '&#x1F3C6;' : '&#x26A1;';
+        const scorePts = season.scoring[ev.type] ? `<span class="event-pts">+${season.scoring[ev.type]}</span>` : '';
+        html += `<div class="episode-event"><span class="event-icon">${icon}</span>${thumbnail(c)}<span class="event-player">${ev.player}</span><span class="event-desc">${ev.description}</span>${scorePts}</div>`;
+      }
+      html += `</div>`;
+    }
+
     html += `<div class="episode-impact">${ep.scoreImpact}</div>`;
     html += `</div>`;
   }

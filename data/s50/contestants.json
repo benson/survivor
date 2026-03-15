@@ -6,7 +6,7 @@
     "method": "voted out",
     "jury": false,
     "note": null,
-    "bonuses": {},
+    "bonuses": { "idolFound": 1 },
     "image": "https://www.paramountplus.com/sneak-peak/wp-content/uploads/2026/01/3080973_01641b-1024x683.jpg",
     "bio": "s37 david vs goliath — robotics scientist, puzzle beast, lovable nerd"
   },
@@ -215,7 +215,7 @@
     "method": null,
     "jury": false,
     "note": null,
-    "bonuses": {},
+    "bonuses": { "idolFound": 1 },
     "image": "https://www.paramountplus.com/sneak-peak/wp-content/uploads/2026/01/image-42-1024x683.jpeg",
     "bio": "s47 — corporate lawyer, stealthy strategist, underestimated"
   },

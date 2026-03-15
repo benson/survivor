@@ -6,24 +6,33 @@
     "summary": "the 24 returning players are divided into three tribes — cila, kalo, and vatu. ozzy wins exile for vatu but is sent to exile island. at tribal council, jenna is voted out 7-1 in the season's first blindside.",
     "eliminated": ["jenna lewis-dougherty"],
     "method": "voted out (7-1)",
+    "events": [],
     "scoreImpact": "no score impact — jenna was not drafted by any team."
   },
   {
     "number": 2,
     "title": "Therapy Carousel",
     "airDate": "2026-03-04",
-    "summary": "kyle suffers an injury and is evacuated from the game on day 4. at tribal council, savannah is voted out 6-1.",
+    "summary": "kyle suffers an injury and is evacuated from the game on day 4. christian finds the billie eilish boomerang idol on cila beach and sends it to aubry on vatu. cirie picks up an extra vote on the journey. colby loses his vote on the journey. at tribal council, savannah is voted out 6-1.",
     "eliminated": ["kyle fraser", "savannah louie"],
     "method": "kyle evacuated, savannah voted out (6-1)",
-    "scoreImpact": "mom picks up 3 pts (savannah, 22nd place). benson has savannah as an alternate — no swap benefit yet since none of benson's picks have been eliminated."
+    "events": [
+      { "type": "idolFound", "player": "christian hubicki", "description": "found the billie eilish boomerang idol, sent to aubry" },
+      { "type": "advantage", "player": "cirie fields", "description": "gained an extra vote on the journey" },
+      { "type": "disadvantage", "player": "colby donaldson", "description": "lost his vote on the journey" }
+    ],
+    "scoreImpact": "mom picks up 3 pts (savannah, 22nd place). christian's idol find earns +1 for annie, sameh, lil, and mom. benson has savannah as an alternate — no swap benefit yet."
   },
   {
     "number": 3,
     "title": "Did You Vote For a Swap?",
     "airDate": "2026-03-11",
-    "summary": "a tribe swap shakes up the game. at tribal council, q is voted out 5-1.",
+    "summary": "a tribe swap shakes up the game. genevieve sends her boomerang idol to ozzy on the new vatu. rick claims to have found an idol to build trust, though it was actually christian's find. at tribal council, q is voted out 5-1.",
     "eliminated": ["q burdette"],
     "method": "voted out (5-1)",
-    "scoreImpact": "big episode for three teams — ellie, lil, and dad each pick up 4 pts (q, 21st place). ellie and dad jump to 4 pts total, lil also reaches 4."
+    "events": [
+      { "type": "idolFound", "player": "genevieve mushaluk", "description": "found a boomerang idol, sent to ozzy" }
+    ],
+    "scoreImpact": "big episode — ellie, lil, and dad each pick up 4 pts (q, 21st place). genevieve's idol find earns +1 for ellie, benson, and lil."
   }
 ]

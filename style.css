@@ -988,6 +988,53 @@ p { line-height: 1.65; font-size: 0.95rem; color: var(--faded-ink); }
   font-style: italic;
 }
 
+.episode-events {
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.episode-event {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--faded-ink);
+  padding: 5px 10px;
+  background: rgba(196, 164, 108, 0.08);
+  border-left: 3px solid var(--hemp);
+}
+
+.event-icon {
+  font-size: 0.75rem;
+  flex-shrink: 0;
+  filter: saturate(0.5);
+}
+
+.event-player {
+  font-weight: 700;
+  color: var(--weathered-brown);
+  flex-shrink: 0;
+}
+
+.event-desc {
+  color: var(--ash);
+  font-style: italic;
+  flex: 1;
+}
+
+.event-desc::before {
+  content: "— ";
+}
+
+.event-pts {
+  font-weight: 700;
+  color: var(--terracotta);
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
 .episode-impact {
   font-size: 0.82rem;
   color: var(--terracotta-dark);
