@@ -289,63 +289,73 @@ p { line-height: 1.65; font-size: 0.95rem; color: var(--faded-ink); }
 .standings .first-place td:first-child { color: var(--terracotta); }
 .standings tbody tr:hover td { background: rgba(196, 164, 108, 0.12); }
 
-/* picks grid */
-.picks-scroll {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  border: 2px solid var(--weathered-brown);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+/* picks cards */
+.picks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
 }
 
-.picks {
-  width: 100%;
-  min-width: 580px;
-  border-collapse: collapse;
-  font-size: 0.8rem;
+.pick-card {
   background: var(--aged-white);
+  border: 1px solid var(--canvas-dark);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 
-.picks th {
+.pick-card-header {
+  padding: 10px 14px;
   font-weight: 700;
-  font-size: 0.68rem;
-  color: var(--canvas-cream);
-  background: var(--weathered-brown);
-  text-align: left;
-  padding: 8px 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  border-bottom: 3px solid var(--rope-tan);
-}
-
-.picks td {
-  padding: 10px 10px;
-  border-bottom: 2px solid var(--canvas-dark);
-  white-space: nowrap;
-}
-
-.picks .player-name {
-  min-width: 70px;
-  font-weight: 700;
+  font-size: 0.92rem;
   color: var(--weathered-brown);
+  background: repeating-linear-gradient(90deg, transparent 0px, transparent 3px, rgba(196, 164, 108, 0.08) 3px, rgba(196, 164, 108, 0.08) 4px);
+  border-bottom: 1px solid var(--canvas-dark);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
 }
 
-.pick .pts {
-  font-size: 0.7rem;
+.pick-card-pts {
+  font-size: 0.78rem;
+  color: var(--terracotta);
+}
+
+.pick-card-picks {
+  padding: 8px 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pick-card-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  padding: 3px 0;
+}
+
+.pick-card-name {
+  flex: 1;
+  color: var(--faded-ink);
+}
+
+.pick-card-pts-val {
+  font-size: 0.72rem;
   color: var(--ash);
-  margin-left: 2px;
+  font-variant-numeric: tabular-nums;
 }
 
-.pick.winner { color: var(--terracotta-dark); font-weight: 700; text-shadow: 0 0 0.5px var(--terracotta-dark); }
-.pick.runner-up { color: var(--weathered-brown); font-weight: 700; }
-.pick.pre-jury { color: var(--ash); opacity: 0.55; font-style: italic; }
-.pick .pts.projected { color: var(--rope-tan); font-style: italic; }
-.pick.swapped-out { text-decoration: line-through; color: var(--ash); opacity: 0.4; }
+.pick-card-pts-val.projected { color: var(--rope-tan); font-style: italic; }
 
-.alt-col { border-left: 2px dashed var(--rope-tan); }
-.pick.swapped-in { border-bottom: 1px dotted var(--rope-tan); color: var(--faded-ink); }
+.pick-card-alt {
+  border-top: 1px dashed var(--rope-tan);
+  margin-top: 2px;
+  padding-top: 6px;
+}
 
-.picks tbody tr:hover td { background: rgba(196, 164, 108, 0.12); }
+.pick-card-row.swapped-out { opacity: 0.4; text-decoration: line-through; }
+.pick-card-row.swapped-in .pick-card-name { color: var(--terracotta); }
+.pick-card-row.pre-jury { opacity: 0.55; font-style: italic; }
 
 .inline-headshot {
   width: 20px;
@@ -1073,7 +1083,7 @@ footer {
   .content { padding: 30px 30px 80px; }
   .site-header { padding: 20px 30px; }
   .header-title { font-size: 1.25rem; }
-  .picks { font-size: 0.85rem; }
+
   section { margin-top: 44px; }
   .contestant-grid { grid-template-columns: repeat(4, 1fr); }
   .pick-slot { max-width: none; }

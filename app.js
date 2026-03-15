@@ -320,42 +320,52 @@ async function renderSeason(app, seasonId) {
   }
   html += `</section>`;
 
-  // picks grid
+  // picks cards
   if (picks.length > 0) {
     html += `<section><h2>draft picks</h2>`;
     html += `<p class="section-note">alternates replace your earliest-eliminated pick if beneficial.</p>`;
-    html += `<div class="picks-scroll"><table class="picks"><thead><tr><th>player</th>`;
-    for (let i = 0; i < season.picksPerPlayer; i++) html += `<th>pick ${i + 1}</th>`;
-    html += `<th class="alt-col">alt</th></tr></thead><tbody>`;
+    html += `<div class="picks-grid">`;
 
     for (const result of standings) {
-      html += `<tr><td class="player-name">${result.name}</td>`;
-      for (const pick of result.picks) {
+      html += `<div class="pick-card">`;
+      html += `<div class="pick-card-header"><span>${result.name}</span><span class="pick-card-pts">${result.total} pts</span></div>`;
+      html += `<div class="pick-card-picks">`;
+
+      // sort: active alphabetically, then eliminated at end
+      const sorted = [...result.picks].sort((a, b) => {
+        const aElim = a.contestant && a.contestant.placement != null;
+        const bElim = b.contestant && b.contestant.placement != null;
+        if (aElim !== bElim) return aElim ? 1 : -1;
+        const aName = a.contestant ? a.contestant.name : '';
+        const bName = b.contestant ? b.contestant.name : '';
+        return aName.localeCompare(bName);
+      });
+
+      for (const pick of sorted) {
         const c = pick.contestant;
         const name = c ? c.name.split(' ')[0] : '?';
-        let cls = 'pick';
+        let cls = 'pick-card-row';
         if (pick.swappedOut) cls += ' swapped-out';
-        else if (c && c.placement === 1) cls += ' winner';
-        else if (c && c.placement === 2) cls += ' runner-up';
         else if (c && c.placement != null && !c.jury) cls += ' pre-jury';
-        html += `<td><span class="${cls}">${thumbnail(c)}${name}`;
-        if (c && c.placement != null) html += ` <span class="pts">(${pick.total})</span>`;
-        else if (c && pick.total > 0) html += ` <span class="pts projected">(${pick.total}+)</span>`;
-        html += `</span></td>`;
+        const ptsCls = c && c.placement == null ? 'pick-card-pts-val projected' : 'pick-card-pts-val';
+        const ptsVal = c && c.placement != null ? pick.total : (c && pick.total > 0 ? pick.total + '+' : '');
+        html += `<div class="${cls}">${thumbnail(c)}<span class="pick-card-name">${name}</span><span class="${ptsCls}">${ptsVal}</span></div>`;
       }
+
+      // alternates
       for (const alt of result.alternates) {
         const c = alt.contestant;
         const name = c ? c.name.split(' ')[0] : '?';
-        let cls = 'pick';
+        let cls = 'pick-card-row pick-card-alt';
         if (alt.swappedIn) cls += ' swapped-in';
-        html += `<td class="alt-col"><span class="${cls}">${thumbnail(c)}${name}`;
-        if (c && c.placement != null) html += ` <span class="pts">(${alt.total})</span>`;
-        else if (c && alt.total > 0) html += ` <span class="pts projected">(${alt.total}+)</span>`;
-        html += `</span></td>`;
+        const ptsCls = c && c.placement == null ? 'pick-card-pts-val projected' : 'pick-card-pts-val';
+        const ptsVal = c && c.placement != null ? alt.total : (c && alt.total > 0 ? alt.total + '+' : '');
+        html += `<div class="${cls}">${thumbnail(c)}<span class="pick-card-name">${name}</span><span class="${ptsCls}">${ptsVal}</span></div>`;
       }
-      html += `</tr>`;
+
+      html += `</div></div>`;
     }
-    html += `</tbody></table></div></section>`;
+    html += `</div></section>`;
   }
 
   // scoring rules
