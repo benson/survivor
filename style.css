@@ -348,7 +348,9 @@ p { line-height: 1.65; font-size: 0.95rem; color: var(--faded-ink); }
 .pick-card-pts-val.projected { color: var(--rope-tan); font-style: italic; }
 
 .pick-card-row.eliminated { opacity: 0.55; }
-.pick-card-row.dropped { opacity: 0.3; text-decoration: line-through; }
+.pick-card-row.dropped { opacity: 0.3; }
+.pick-card-row.dropped .pick-card-name,
+.pick-card-row.dropped .pick-card-pts-val { text-decoration: line-through; }
 
 .inline-headshot {
   width: 20px;
