@@ -345,8 +345,8 @@ async function renderSeason(app, seasonId) {
         const c = pick.contestant;
         const name = c ? c.name.split(' ')[0] : '?';
         let cls = 'pick-card-row';
+        if (c && c.placement != null) cls += ' eliminated';
         if (pick.swappedOut) cls += ' swapped-out';
-        else if (c && c.placement != null && !c.jury) cls += ' pre-jury';
         const ptsCls = c && c.placement == null ? 'pick-card-pts-val projected' : 'pick-card-pts-val';
         const ptsVal = c && c.placement != null ? pick.total : (c && pick.total > 0 ? pick.total + '+' : '');
         html += `<div class="${cls}">${thumbnail(c)}<span class="pick-card-name">${name}</span><span class="${ptsCls}">${ptsVal}</span></div>`;
@@ -357,6 +357,7 @@ async function renderSeason(app, seasonId) {
         const c = alt.contestant;
         const name = c ? c.name.split(' ')[0] : '?';
         let cls = 'pick-card-row pick-card-alt';
+        if (c && c.placement != null) cls += ' eliminated';
         if (alt.swappedIn) cls += ' swapped-in';
         else if (c && c.placement != null) cls += ' swapped-out';
         const ptsCls = c && c.placement == null ? 'pick-card-pts-val projected' : 'pick-card-pts-val';
@@ -407,7 +408,6 @@ async function renderSeason(app, seasonId) {
       if (c.placement === 1) contClass += ' winner-name';
       else if (c.placement <= 3) contClass += ' finalist';
       else if (c.jury) contClass += ' jury';
-      else if (c.method === 'medevac') contClass += ' medevac';
       else contClass += ' pre-jury';
 
       html += `<li class="${liClass}">
@@ -749,7 +749,7 @@ function renderBreakdownTable(result, activeFloor, { showFullName = false } = {}
     const placementStr = isActive ? 'active' : ordinal(c.placement);
     const calc = pick.swappedOut ? '&larr; swapped out' : (isActive ? `${activeFloor}+ min` : '');
     const pts = pick.swappedOut ? `<s>${pick.total}</s>` : pick.total;
-    const trCls = isActive ? ' class="projected-row"' : '';
+    const trCls = isActive ? ' class="projected-row"' : (c.placement != null ? ' class="eliminated-row"' : '');
     html += `<tr${trCls}><td>${thumbnail(c)}${name} (${placementStr})</td><td class="calc">${calc}</td><td class="bp">${pts}${isActive ? '+' : ''}</td></tr>`;
     if (showFullName && pick.bonus > 0 && !pick.swappedOut) {
       html += `<tr class="bonus-row"><td colspan="2">&nbsp;&nbsp;gameplay bonuses</td><td class="bp">+${pick.bonus}</td></tr>`;

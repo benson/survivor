@@ -353,9 +353,8 @@ p { line-height: 1.65; font-size: 0.95rem; color: var(--faded-ink); }
   padding-top: 6px;
 }
 
-.pick-card-row.swapped-out { opacity: 0.4; text-decoration: line-through; }
+.pick-card-row.eliminated { opacity: 0.4; text-decoration: line-through; }
 .pick-card-row.swapped-in .pick-card-name { color: var(--terracotta); }
-.pick-card-row.pre-jury { opacity: 0.4; text-decoration: line-through; }
 
 .inline-headshot {
   width: 20px;
@@ -449,6 +448,11 @@ p { line-height: 1.65; font-size: 0.95rem; color: var(--faded-ink); }
   color: var(--rope-tan);
 }
 
+.breakdown-table .eliminated-row td {
+  color: var(--ash);
+  opacity: 0.6;
+}
+
 .breakdown-table .bonus-row td {
   color: var(--ash);
   font-size: 0.72rem;
@@ -539,7 +543,6 @@ p { line-height: 1.65; font-size: 0.95rem; color: var(--faded-ink); }
 .timeline .contestant.jury { color: var(--faded-ink); }
 .timeline .contestant.finalist { color: var(--weathered-brown); font-weight: 700; }
 .timeline .contestant.winner-name { color: var(--terracotta-dark); font-weight: 700; font-size: 0.95rem; }
-.timeline .contestant.medevac { color: var(--ash); opacity: 0.55; font-style: italic; }
 
 .timeline .note {
   color: var(--ash);
