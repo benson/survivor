@@ -6,6 +6,9 @@ on:
     - cron: '0 2,4,6,8 * * 4'  # thursday 2am, 4am, 6am, 8am UTC
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   scrape:
     runs-on: ubuntu-latest
