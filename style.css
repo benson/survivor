@@ -347,14 +347,8 @@ p { line-height: 1.65; font-size: 0.95rem; color: var(--faded-ink); }
 
 .pick-card-pts-val.projected { color: var(--rope-tan); font-style: italic; }
 
-.pick-card-alt {
-  border-top: 1px dashed var(--rope-tan);
-  margin-top: 2px;
-  padding-top: 6px;
-}
-
-.pick-card-row.eliminated { opacity: 0.4; text-decoration: line-through; }
-.pick-card-row.swapped-in .pick-card-name { color: var(--terracotta); }
+.pick-card-row.eliminated { opacity: 0.55; }
+.pick-card-row.dropped { opacity: 0.3; text-decoration: line-through; }
 
 .inline-headshot {
   width: 20px;
@@ -450,7 +444,12 @@ p { line-height: 1.65; font-size: 0.95rem; color: var(--faded-ink); }
 
 .breakdown-table .eliminated-row td {
   color: var(--ash);
-  opacity: 0.6;
+}
+
+.breakdown-table .dropped-row td {
+  color: var(--ash);
+  opacity: 0.4;
+  text-decoration: line-through;
 }
 
 .breakdown-table .bonus-row td {

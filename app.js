@@ -69,18 +69,15 @@ function computeStandings(season, contestants, picks) {
   const activeFloor = eliminatedCount > 0 ? eliminatedCount + 1 : 0;
 
   const results = picks.map(player => {
-    const pickContestants = player.picks.map(name => contestantMap.get(name));
-    const altContestants = (player.alternates || []).map(name => contestantMap.get(name));
+    const allNames = [...player.picks, ...(player.alternates || [])];
+    const allContestants = allNames.map(name => contestantMap.get(name));
 
-    // placement points for a contestant
-    // active contestants get the guaranteed minimum (floor)
     const placementPts = c => {
       if (!c) return 0;
       if (c.placement != null) return contestantCount + 1 - c.placement;
       return activeFloor;
     };
 
-    // gameplay bonus points for a contestant
     const bonusPts = c => {
       if (!c || !c.bonuses) return 0;
       let total = 0;
@@ -92,84 +89,43 @@ function computeStandings(season, contestants, picks) {
 
     const totalPts = c => placementPts(c) + bonusPts(c);
 
-    // find best alternate swap: replace earliest-eliminated pick with alt if net gain
-    let swapIndex = -1;
-    let swapAltIndex = -1;
-    if (altContestants.length > 0) {
-      // find the pick with lowest points (only eliminated picks can be swapped out)
-      let worstIdx = -1;
-      let worstPts = Infinity;
-      for (let i = 0; i < pickContestants.length; i++) {
-        const c = pickContestants[i];
-        if (c && c.placement != null && totalPts(c) < worstPts) {
-          worstPts = totalPts(c);
-          worstIdx = i;
-        }
-      }
+    // score all picks
+    const scored = allContestants.map(c => ({
+      contestant: c,
+      placement: placementPts(c),
+      bonus: bonusPts(c),
+      total: totalPts(c),
+      dropped: false
+    }));
 
-      if (worstIdx !== -1) {
-        for (let a = 0; a < altContestants.length; a++) {
-          const alt = altContestants[a];
-          if (totalPts(alt) > totalPts(pickContestants[worstIdx])) {
-            swapIndex = worstIdx;
-            swapAltIndex = a;
-            break;
-          }
-        }
+    // drop the lowest scorer (pick 7, keep best 6)
+    if (scored.length > season.picksPerPlayer) {
+      let lowestIdx = 0;
+      for (let i = 1; i < scored.length; i++) {
+        if (scored[i].total < scored[lowestIdx].total) lowestIdx = i;
       }
+      scored[lowestIdx].dropped = true;
     }
 
-    // compute final picks with swap applied
-    const finalPicks = pickContestants.map((c, i) => ({
-      contestant: c,
-      placement: placementPts(c),
-      bonus: bonusPts(c),
-      total: totalPts(c),
-      swappedOut: i === swapIndex
-    }));
-
-    const activeAlts = altContestants.map((c, a) => ({
-      contestant: c,
-      placement: placementPts(c),
-      bonus: bonusPts(c),
-      total: totalPts(c),
-      swappedIn: a === swapAltIndex
-    }));
-
-    // sum active points
+    // sum non-dropped
     let totalPoints = 0;
-    for (let i = 0; i < finalPicks.length; i++) {
-      if (finalPicks[i].swappedOut) continue;
-      totalPoints += finalPicks[i].total;
-    }
-    for (const alt of activeAlts) {
-      if (alt.swappedIn) totalPoints += alt.total;
+    for (const s of scored) {
+      if (!s.dropped) totalPoints += s.total;
     }
 
     // winner/runner-up bonuses
     let winnerBonusPts = 0;
     let runnerUpBonusPts = 0;
-    const activePicks = [
-      ...finalPicks.filter(p => !p.swappedOut).map(p => p.contestant),
-      ...activeAlts.filter(a => a.swappedIn).map(a => a.contestant)
-    ];
-
-    for (const c of activePicks) {
-      if (!c) continue;
-      if (c.placement === 1 && scoring.winnerBonus) {
-        winnerBonusPts = scoring.winnerBonus;
-      }
-      if (c.placement === 2 && scoring.runnerUpBonus) {
-        runnerUpBonusPts = scoring.runnerUpBonus;
-      }
+    for (const s of scored) {
+      if (s.dropped || !s.contestant) continue;
+      if (s.contestant.placement === 1 && scoring.winnerBonus) winnerBonusPts = scoring.winnerBonus;
+      if (s.contestant.placement === 2 && scoring.runnerUpBonus) runnerUpBonusPts = scoring.runnerUpBonus;
     }
-
     totalPoints += winnerBonusPts + runnerUpBonusPts;
 
     return {
       name: player.name,
-      picks: finalPicks,
-      alternates: activeAlts,
+      picks: scored,
       winnerBonus: winnerBonusPts,
       runnerUpBonus: runnerUpBonusPts,
       total: totalPoints
@@ -323,7 +279,7 @@ async function renderSeason(app, seasonId) {
   // picks cards
   if (picks.length > 0) {
     html += `<section><h2>draft picks</h2>`;
-    html += `<p class="section-note">alternates replace your earliest-eliminated pick if beneficial.</p>`;
+    html += `<p class="section-note">pick ${season.picksPerPlayer + (season.alternates || 0)}, keep your best ${season.picksPerPlayer}. lowest scorer is dropped.</p>`;
     html += `<div class="picks-grid">`;
 
     for (const result of standings) {
@@ -331,8 +287,9 @@ async function renderSeason(app, seasonId) {
       html += `<div class="pick-card-header"><span>${result.name}</span><span class="pick-card-pts">${result.total} pts</span></div>`;
       html += `<div class="pick-card-picks">`;
 
-      // sort: active alphabetically, then eliminated at end
+      // sort: active alphabetically, then eliminated, then dropped last
       const sorted = [...result.picks].sort((a, b) => {
+        if (a.dropped !== b.dropped) return a.dropped ? 1 : -1;
         const aElim = a.contestant && a.contestant.placement != null;
         const bElim = b.contestant && b.contestant.placement != null;
         if (aElim !== bElim) return aElim ? 1 : -1;
@@ -346,22 +303,9 @@ async function renderSeason(app, seasonId) {
         const name = c ? c.name.split(' ')[0] : '?';
         let cls = 'pick-card-row';
         if (c && c.placement != null) cls += ' eliminated';
-        if (pick.swappedOut) cls += ' swapped-out';
+        if (pick.dropped) cls += ' dropped';
         const ptsCls = c && c.placement == null ? 'pick-card-pts-val projected' : 'pick-card-pts-val';
         const ptsVal = c && c.placement != null ? pick.total : (c && pick.total > 0 ? pick.total + '+' : '');
-        html += `<div class="${cls}">${thumbnail(c)}<span class="pick-card-name">${name}</span><span class="${ptsCls}">${ptsVal}</span></div>`;
-      }
-
-      // alternates
-      for (const alt of result.alternates) {
-        const c = alt.contestant;
-        const name = c ? c.name.split(' ')[0] : '?';
-        let cls = 'pick-card-row pick-card-alt';
-        if (c && c.placement != null) cls += ' eliminated';
-        if (alt.swappedIn) cls += ' swapped-in';
-        else if (c && c.placement != null) cls += ' swapped-out';
-        const ptsCls = c && c.placement == null ? 'pick-card-pts-val projected' : 'pick-card-pts-val';
-        const ptsVal = c && c.placement != null ? alt.total : (c && alt.total > 0 ? alt.total + '+' : '');
         html += `<div class="${cls}">${thumbnail(c)}<span class="pick-card-name">${name}</span><span class="${ptsCls}">${ptsVal}</span></div>`;
       }
 
@@ -373,7 +317,7 @@ async function renderSeason(app, seasonId) {
   // scoring rules
   html += `<section><h2>scoring</h2><div class="scoring-rules">`;
   html += `<p><b>placement points</b> &mdash; each pick earns points based on how far they got. winner = ${season.contestantCount} pts, first out = 1 pt.${activeFloor > 0 ? ` active picks are guaranteed at least ${activeFloor} pts.` : ''}</p>`;
-  html += `<p><b>alternate swap</b> &mdash; your alternate replaces your earliest-eliminated pick, but only if it's an upgrade.</p>`;
+  html += `<p><b>drop lowest</b> &mdash; pick ${season.picksPerPlayer + (season.alternates || 0)}, keep your best ${season.picksPerPlayer}. your lowest scorer doesn't count.</p>`;
   html += `<p><b>bonuses</b> &mdash; +${season.scoring.winnerBonus} for picking the winner. +${season.scoring.runnerUpBonus} for picking the runner-up.</p>`;
   if (season.scoring.immunityWin) {
     html += `<p><b>gameplay</b> &mdash; +${season.scoring.immunityWin}/immunity win, +${season.scoring.idolFound}/idol found, +${season.scoring.idolPlayed}/idol played.</p>`;
@@ -747,24 +691,14 @@ function renderBreakdownTable(result, activeFloor, { showFullName = false } = {}
     const isActive = c.placement == null;
     const name = showFullName ? c.name : c.name.split(' ')[0];
     const placementStr = isActive ? 'active' : ordinal(c.placement);
-    const calc = pick.swappedOut ? '&larr; swapped out' : (isActive ? `${activeFloor}+ min` : '');
-    const pts = pick.swappedOut ? `<s>${pick.total}</s>` : pick.total;
-    const trCls = isActive ? ' class="projected-row"' : (c.placement != null ? ' class="eliminated-row"' : '');
-    html += `<tr${trCls}><td>${thumbnail(c)}${name} (${placementStr})</td><td class="calc">${calc}</td><td class="bp">${pts}${isActive ? '+' : ''}</td></tr>`;
-    if (showFullName && pick.bonus > 0 && !pick.swappedOut) {
+    const calc = pick.dropped ? 'dropped' : (isActive ? `${activeFloor}+ min` : '');
+    let trCls = '';
+    if (pick.dropped) trCls = ' class="dropped-row"';
+    else if (isActive) trCls = ' class="projected-row"';
+    else if (c.placement != null) trCls = ' class="eliminated-row"';
+    html += `<tr${trCls}><td>${thumbnail(c)}${name} (${placementStr})</td><td class="calc">${calc}</td><td class="bp">${pick.total}${isActive ? '+' : ''}</td></tr>`;
+    if (showFullName && pick.bonus > 0 && !pick.dropped) {
       html += `<tr class="bonus-row"><td colspan="2">&nbsp;&nbsp;gameplay bonuses</td><td class="bp">+${pick.bonus}</td></tr>`;
-    }
-  }
-
-  for (const alt of result.alternates) {
-    const c = alt.contestant;
-    if (!c) continue;
-    const name = showFullName ? c.name : c.name.split(' ')[0];
-    const placementStr = c.placement != null ? ordinal(c.placement) : 'active';
-    if (alt.swappedIn) {
-      html += `<tr><td>${thumbnail(c)}${name} (${placementStr})</td><td class="calc">&larr; swapped in</td><td class="bp">${alt.total}</td></tr>`;
-    } else {
-      html += `<tr class="bonus-row"><td colspan="2">alt ${thumbnail(c)}${name} (${placementStr}) not used</td><td class="bp">&mdash;</td></tr>`;
     }
   }
 
