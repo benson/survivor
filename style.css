@@ -1067,17 +1067,6 @@ p { line-height: 1.65; font-size: 0.95rem; color: var(--faded-ink); }
   line-height: 1.5;
 }
 
-/* footer */
-footer {
-  margin-top: 60px;
-  font-size: 0.72rem;
-  color: var(--ash);
-  text-align: center;
-  padding: 16px 0;
-  border-top: 1px solid var(--canvas-dark);
-  letter-spacing: 0.05em;
-}
-
 /* desktop */
 @media (min-width: 601px) {
   .content { padding: 30px 30px 80px; }
