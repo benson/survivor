@@ -31,6 +31,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "no changes to commit"
           else
-            git commit -m "update contestant data from wiki"
+            git commit -m "update s50 data from wiki scrape"
             git push
           fi

@@ -168,12 +168,85 @@ function parseContestants(html, existingContestants) {
   return Array.from(contestantMap.values());
 }
 
+function generateEpisode(seasonId, season, contestants, picks) {
+  const episodesPath = join(ROOT, 'data', seasonId, 'episodes.json');
+  let episodes = [];
+  try { episodes = JSON.parse(readFileSync(episodesPath, 'utf-8')); } catch (e) {}
+
+  // find eliminations not yet tracked in any episode
+  const alreadyTracked = new Set();
+  for (const ep of episodes) {
+    for (const name of ep.eliminated) alreadyTracked.add(name);
+  }
+  const untracked = contestants.filter(c => c.placement != null && !alreadyTracked.has(c.name));
+  if (untracked.length === 0) return false;
+
+  // sort by placement descending (earliest eliminated first)
+  untracked.sort((a, b) => b.placement - a.placement);
+
+  // compute score impact
+  const { contestantCount, scoring } = season;
+
+  const impactParts = [];
+  for (const elim of untracked) {
+    const pts = contestantCount + 1 - elim.placement;
+    const owners = picks.filter(p =>
+      [...p.picks, ...(p.alternates || [])].includes(elim.name)
+    ).map(p => p.name);
+    if (owners.length > 0) {
+      impactParts.push(`${elim.name} (${ordinalStr(elim.placement)}) — ${pts} pts for ${owners.join(', ')}`);
+    } else {
+      impactParts.push(`${elim.name} (${ordinalStr(elim.placement)}) — not drafted`);
+    }
+  }
+
+  // build method string
+  const methods = untracked.map(c => {
+    const name = c.name.split(' ')[0];
+    return c.method === 'medevac' ? `${name} evacuated` : `${name} ${c.method}`;
+  });
+
+  // air date: most recent wednesday
+  const now = new Date();
+  const day = now.getUTCDay();
+  const daysSinceWed = (day + 4) % 7; // wednesday = 3
+  const lastWed = new Date(now);
+  lastWed.setUTCDate(now.getUTCDate() - daysSinceWed);
+  const airDate = lastWed.toISOString().split('T')[0];
+
+  const episode = {
+    number: episodes.length + 1,
+    title: "",
+    airDate,
+    summary: "",
+    eliminated: untracked.map(c => c.name),
+    method: methods.join(', '),
+    events: [],
+    scoreImpact: impactParts.join('. ') + '.'
+  };
+
+  episodes.push(episode);
+  writeFileSync(episodesPath, JSON.stringify(episodes, null, 2) + '\n');
+  console.log(`${seasonId}: added episode ${episode.number} to episodes.json`);
+  return true;
+}
+
+function ordinalStr(n) {
+  if (n == null) return '?';
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
 async function scrapeSeason(seasonId) {
   const seasonPath = join(ROOT, 'data', seasonId, 'season.json');
   const contestantsPath = join(ROOT, 'data', seasonId, 'contestants.json');
+  const picksPath = join(ROOT, 'data', seasonId, 'picks.json');
 
   const season = JSON.parse(readFileSync(seasonPath, 'utf-8'));
   const existing = JSON.parse(readFileSync(contestantsPath, 'utf-8'));
+  let picks = [];
+  try { picks = JSON.parse(readFileSync(picksPath, 'utf-8')); } catch (e) {}
 
   if (!season.wikiSlug) {
     console.log(`${seasonId}: no wikiSlug configured, skipping`);
@@ -196,6 +269,10 @@ async function scrapeSeason(seasonId) {
 
   writeFileSync(contestantsPath, newJson + '\n');
   console.log(`${seasonId}: updated contestants.json`);
+
+  // generate episode recap if untracked eliminations exist
+  generateEpisode(seasonId, season, updated, picks);
+
   return true;
 }
 
@@ -204,6 +281,8 @@ async function main() {
 
   if (targetId) {
     await scrapeSeason(targetId);
+    // also backfill episodes for any untracked eliminations
+    backfillEpisodes(targetId);
     return;
   }
 
@@ -215,11 +294,26 @@ async function main() {
     if (s.status !== 'active') continue;
     const changed = await scrapeSeason(s.id);
     if (changed) anyChanged = true;
+    // backfill episodes even if no contestant changes (catches missed episodes)
+    backfillEpisodes(s.id);
   }
 
   if (!anyChanged) {
     console.log('no updates found');
   }
+}
+
+function backfillEpisodes(seasonId) {
+  const seasonPath = join(ROOT, 'data', seasonId, 'season.json');
+  const contestantsPath = join(ROOT, 'data', seasonId, 'contestants.json');
+  const picksPath = join(ROOT, 'data', seasonId, 'picks.json');
+
+  const season = JSON.parse(readFileSync(seasonPath, 'utf-8'));
+  const contestants = JSON.parse(readFileSync(contestantsPath, 'utf-8'));
+  let picks = [];
+  try { picks = JSON.parse(readFileSync(picksPath, 'utf-8')); } catch (e) {}
+
+  generateEpisode(seasonId, season, contestants, picks);
 }
 
 main().catch(e => {
