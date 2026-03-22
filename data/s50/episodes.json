@@ -66,8 +66,11 @@
     "eliminated": [
       "mike white"
     ],
-    "method": "voted out (day 9)",
-    "events": [],
-    "scoreImpact": "mike white (20th) — 5 pts for ellie, i love joe (sameh's team)."
+    "method": "voted out (3-2-1)",
+    "events": [
+      { "type": "idolFound", "player": "genevieve mushaluk", "description": "found her second boomerang idol, kept it secret this time" },
+      { "type": "idolFound", "player": "rizo velovic", "description": "found a hidden immunity idol" }
+    ],
+    "scoreImpact": "mike white (20th) — 5 pts for ellie and sameh. genevieve's idol find earns +1 for ellie, benson, and lil. rizo's idol find earns +1 for everyone except annie."
   }
 ]
