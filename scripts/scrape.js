@@ -207,7 +207,7 @@ function parseEpisodeGuide(html) {
   return episodes;
 }
 
-async function fetchEpisodeSynopsis(title) {
+async function fetchEpisodePage(title, contestantNames) {
   const slug = title.replace(/ /g, '_');
   try {
     const html = await fetchWikiHTML(slug);
@@ -225,10 +225,56 @@ async function fetchEpisodeSynopsis(title) {
           .trim();
       }
     });
-    return synopsis;
+
+    // extract gameplay events from confessional blocks (table.cquote)
+    const events = [];
+    const seen = new Set();
+    const nameMap = new Map();
+    for (const name of contestantNames) {
+      nameMap.set(name.split(' ')[0].toLowerCase(), name);
+    }
+
+    $('table.cquote').each((_, cq) => {
+      const raw = $(cq).text().trim();
+      const quoteText = raw.toLowerCase();
+
+      // identify the speaker — first name at start of confessional
+      let speaker = null;
+      for (const [firstName, fullName] of nameMap) {
+        if (quoteText.startsWith(firstName)) { speaker = fullName; break; }
+      }
+      if (!speaker) return;
+
+      // idol finds — first-person language about finding/discovering an idol
+      // require "idol" as a standalone word (not "idolized" etc)
+      if (/(?:found|finding|discovered).{0,40}\bidols?\b|got.{0,20}\bidols?\b|\bidols?\b.{0,40}(?:found|discovered)/i.test(quoteText)) {
+        if (!seen.has(`idolFound:${speaker}`)) {
+          seen.add(`idolFound:${speaker}`);
+          events.push({ type: 'idolFound', player: speaker, description: 'found an idol' });
+        }
+      }
+
+      // idol plays
+      if (/(?:play|played|playing|use|used).{0,40}(?:hidden )?(?:immunity )?\bidols?\b|\bidols?\b.{0,40}(?:play|played|used)/i.test(quoteText)) {
+        if (!seen.has(`idolPlayed:${speaker}`)) {
+          seen.add(`idolPlayed:${speaker}`);
+          events.push({ type: 'idolPlayed', player: speaker, description: 'played an idol' });
+        }
+      }
+
+      // individual immunity wins
+      if (/(?:won|winning).{0,30}individual immunity/i.test(quoteText)) {
+        if (!seen.has(`immunityWin:${speaker}`)) {
+          seen.add(`immunityWin:${speaker}`);
+          events.push({ type: 'immunityWin', player: speaker, description: 'won individual immunity' });
+        }
+      }
+    });
+
+    return { synopsis, events };
   } catch (e) {
     console.log(`  could not fetch episode page "${title}": ${e.message}`);
-    return '';
+    return { synopsis: '', events: [] };
   }
 }
 
@@ -301,15 +347,25 @@ async function scrapeEpisodes(seasonId, season, contestants, picks) {
     const dateMatch = guide.airDate.match(/(\w+ \d+, \d{4})/);
     const airDate = dateMatch ? new Date(dateMatch[1]).toISOString().split('T')[0] : '';
 
+    // check if we need to fetch the episode page
+    const contestantNames = Array.from(contestantMap.keys());
+    const needsSummary = existing ? !existing.summary : true;
+    const needsEvents = existing ? (!existing.events || existing.events.length === 0) : true;
+    const needsFetch = (needsSummary || needsEvents) && guide.title;
+
+    let pageData = { synopsis: '', events: [] };
+    if (needsFetch) {
+      console.log(`${seasonId}: fetching ep ${guide.number} "${guide.title}"...`);
+      pageData = await fetchEpisodePage(guide.title, contestantNames);
+    }
+
     if (existing) {
-      // update missing fields only — don't overwrite manual entries
       let epChanged = false;
       if (!existing.title && guide.title) { existing.title = guide.title; epChanged = true; }
       if (!existing.airDate && airDate) { existing.airDate = airDate; epChanged = true; }
-      if (!existing.summary && guide.title) {
-        console.log(`${seasonId}: fetching synopsis for ep ${guide.number} "${guide.title}"...`);
-        const synopsis = await fetchEpisodeSynopsis(guide.title);
-        if (synopsis) { existing.summary = synopsis.toLowerCase(); epChanged = true; }
+      if (!existing.summary && pageData.synopsis) { existing.summary = pageData.synopsis.toLowerCase(); epChanged = true; }
+      if ((!existing.events || existing.events.length === 0) && pageData.events.length > 0) {
+        existing.events = pageData.events; epChanged = true;
       }
       if ((!existing.eliminated || existing.eliminated.length === 0) && eliminatedNames.length > 0) {
         existing.eliminated = eliminatedNames; epChanged = true;
@@ -320,9 +376,6 @@ async function scrapeEpisodes(seasonId, season, contestants, picks) {
       }
       if (epChanged) changed = true;
     } else {
-      // new episode
-      console.log(`${seasonId}: fetching synopsis for ep ${guide.number} "${guide.title}"...`);
-      const synopsis = guide.title ? await fetchEpisodeSynopsis(guide.title) : '';
       const methods = eliminatedNames.map(name => {
         const c = contestantMap.get(name);
         const first = name.split(' ')[0];
@@ -333,10 +386,10 @@ async function scrapeEpisodes(seasonId, season, contestants, picks) {
         number: guide.number,
         title: guide.title,
         airDate,
-        summary: synopsis.toLowerCase(),
+        summary: pageData.synopsis.toLowerCase(),
         eliminated: eliminatedNames,
         method: methods.join(', '),
-        events: [],
+        events: pageData.events,
         scoreImpact: computeScoreImpact(eliminatedNames, season, contestants, picks)
       });
       changed = true;

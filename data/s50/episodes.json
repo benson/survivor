@@ -68,8 +68,16 @@
     ],
     "method": "voted out (3-2-1)",
     "events": [
-      { "type": "idolFound", "player": "genevieve mushaluk", "description": "found her second boomerang idol, kept it secret this time" },
-      { "type": "idolFound", "player": "rizo velovic", "description": "found a hidden immunity idol" }
+      {
+        "type": "idolFound",
+        "player": "genevieve mushaluk",
+        "description": "found an idol"
+      },
+      {
+        "type": "idolFound",
+        "player": "rizo velovic",
+        "description": "found an idol"
+      }
     ],
     "scoreImpact": "mike white (20th) — 5 pts for ellie and sameh. genevieve's idol find earns +1 for ellie, benson, and lil. rizo's idol find earns +1 for everyone except annie."
   }
