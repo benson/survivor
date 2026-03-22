@@ -168,67 +168,189 @@ function parseContestants(html, existingContestants) {
   return Array.from(contestantMap.values());
 }
 
-function generateEpisode(seasonId, season, contestants, picks) {
+function parseEpisodeGuide(html) {
+  const $ = cheerio.load(html);
+  const episodes = [];
+
+  // episode guide table: rows with episode number in first cell (with rowspan)
+  $('table').first().find('tr').each((_, row) => {
+    const cells = $(row).find('td, th');
+    if (cells.length < 5) return;
+
+    const firstText = $(cells[0]).text().trim();
+    const rowspan = parseInt($(cells[0]).attr('rowspan') || '1');
+
+    // episode rows have a number in the first cell with a rowspan
+    const epNum = parseInt(firstText);
+    if (!epNum || rowspan < 2) return;
+
+    const title = $(cells[1]).text().trim().replace(/^"|"$/g, '');
+    const airDate = $(cells[2]).text().trim();
+
+    // find eliminated cell — pattern: "Name(vote)" or "Name(no vote)"
+    let eliminated = '';
+    let method = '';
+    cells.each((_, td) => {
+      const text = $(td).text().trim();
+      if (/\(\d+-\d+/.test(text) || /\(no vote\)/i.test(text)) {
+        eliminated = text;
+      }
+      // finish column: "Nth Voted Out" or "Evacuated"
+      if (/voted out|evacuated|medevac|quit/i.test(text) && /day \d/i.test(text)) {
+        method = text;
+      }
+    });
+
+    episodes.push({ number: epNum, title, airDate, eliminated, method });
+  });
+
+  return episodes;
+}
+
+async function fetchEpisodeSynopsis(title) {
+  const slug = title.replace(/ /g, '_');
+  try {
+    const html = await fetchWikiHTML(slug);
+    const $ = cheerio.load(html);
+
+    // synopsis is in a table.cquote or blockquote containing "Episode Synopsis"
+    let synopsis = '';
+    $('table.cquote, blockquote').each((_, el) => {
+      const text = $(el).text().trim();
+      if (/episode synopsis/i.test(text) && !synopsis) {
+        synopsis = text
+          .replace(/\u2014\s*Episode Synopsis.*$/s, '')
+          .replace(/[\u201C\u201D\u201E\u201F""\n\r]+/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+      }
+    });
+    return synopsis;
+  } catch (e) {
+    console.log(`  could not fetch episode page "${title}": ${e.message}`);
+    return '';
+  }
+}
+
+function computeScoreImpact(eliminated, season, contestants, picks) {
+  const { contestantCount } = season;
+  const contestantMap = new Map();
+  for (const c of contestants) contestantMap.set(c.name, c);
+
+  const parts = [];
+  for (const name of eliminated) {
+    const c = contestantMap.get(name);
+    if (!c || c.placement == null) continue;
+    const pts = contestantCount + 1 - c.placement;
+    const owners = picks.filter(p =>
+      [...p.picks, ...(p.alternates || [])].includes(name)
+    ).map(p => p.name);
+    if (owners.length > 0) {
+      parts.push(`${name} (${ordinalStr(c.placement)}) — ${pts} pts for ${owners.join(', ')}`);
+    } else {
+      parts.push(`${name} (${ordinalStr(c.placement)}) — not drafted`);
+    }
+  }
+  return parts.length > 0 ? parts.join('. ') + '.' : '';
+}
+
+async function scrapeEpisodes(seasonId, season, contestants, picks) {
   const episodesPath = join(ROOT, 'data', seasonId, 'episodes.json');
   let episodes = [];
   try { episodes = JSON.parse(readFileSync(episodesPath, 'utf-8')); } catch (e) {}
 
-  // find eliminations not yet tracked in any episode
-  const alreadyTracked = new Set();
-  for (const ep of episodes) {
-    for (const name of ep.eliminated) alreadyTracked.add(name);
+  // fetch episode guide section from season page
+  const guideUrl = `https://survivor.fandom.com/api.php?action=parse&page=${encodeURIComponent(season.wikiSlug)}&format=json&prop=text&section=7`;
+  let guideEpisodes = [];
+  try {
+    const res = await fetch(guideUrl);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.parse) guideEpisodes = parseEpisodeGuide(data.parse.text['*']);
+    }
+  } catch (e) {
+    console.log(`${seasonId}: could not fetch episode guide: ${e.message}`);
   }
-  const untracked = contestants.filter(c => c.placement != null && !alreadyTracked.has(c.name));
-  if (untracked.length === 0) return false;
 
-  // sort by placement descending (earliest eliminated first)
-  untracked.sort((a, b) => b.placement - a.placement);
+  if (guideEpisodes.length === 0) {
+    console.log(`${seasonId}: no episode guide found`);
+    return false;
+  }
 
-  // compute score impact
-  const { contestantCount, scoring } = season;
+  const contestantMap = new Map();
+  for (const c of contestants) contestantMap.set(c.name, c);
 
-  const impactParts = [];
-  for (const elim of untracked) {
-    const pts = contestantCount + 1 - elim.placement;
-    const owners = picks.filter(p =>
-      [...p.picks, ...(p.alternates || [])].includes(elim.name)
-    ).map(p => p.name);
-    if (owners.length > 0) {
-      impactParts.push(`${elim.name} (${ordinalStr(elim.placement)}) — ${pts} pts for ${owners.join(', ')}`);
+  let changed = false;
+  for (const guide of guideEpisodes) {
+    // skip TBA episodes
+    if (/tba/i.test(guide.eliminated) && !guide.eliminated.match(/\(/)) continue;
+
+    const existing = episodes.find(ep => ep.number === guide.number);
+
+    // parse eliminated names from the guide's eliminated text
+    // format: "Name(vote)" — match contestant names
+    const eliminatedNames = [];
+    for (const [name] of contestantMap) {
+      const firstName = name.split(' ')[0];
+      if (guide.eliminated.toLowerCase().includes(firstName.toLowerCase())) {
+        eliminatedNames.push(name);
+      }
+    }
+
+    // parse air date
+    const dateMatch = guide.airDate.match(/(\w+ \d+, \d{4})/);
+    const airDate = dateMatch ? new Date(dateMatch[1]).toISOString().split('T')[0] : '';
+
+    if (existing) {
+      // update missing fields only — don't overwrite manual entries
+      let epChanged = false;
+      if (!existing.title && guide.title) { existing.title = guide.title; epChanged = true; }
+      if (!existing.airDate && airDate) { existing.airDate = airDate; epChanged = true; }
+      if (!existing.summary && guide.title) {
+        console.log(`${seasonId}: fetching synopsis for ep ${guide.number} "${guide.title}"...`);
+        const synopsis = await fetchEpisodeSynopsis(guide.title);
+        if (synopsis) { existing.summary = synopsis.toLowerCase(); epChanged = true; }
+      }
+      if ((!existing.eliminated || existing.eliminated.length === 0) && eliminatedNames.length > 0) {
+        existing.eliminated = eliminatedNames; epChanged = true;
+      }
+      if (!existing.scoreImpact || existing.scoreImpact === '') {
+        const impact = computeScoreImpact(eliminatedNames, season, contestants, picks);
+        if (impact) { existing.scoreImpact = impact; epChanged = true; }
+      }
+      if (epChanged) changed = true;
     } else {
-      impactParts.push(`${elim.name} (${ordinalStr(elim.placement)}) — not drafted`);
+      // new episode
+      console.log(`${seasonId}: fetching synopsis for ep ${guide.number} "${guide.title}"...`);
+      const synopsis = guide.title ? await fetchEpisodeSynopsis(guide.title) : '';
+      const methods = eliminatedNames.map(name => {
+        const c = contestantMap.get(name);
+        const first = name.split(' ')[0];
+        return c && c.method === 'medevac' ? `${first} evacuated` : `${first} ${c?.method || 'voted out'}`;
+      });
+
+      episodes.push({
+        number: guide.number,
+        title: guide.title,
+        airDate,
+        summary: synopsis.toLowerCase(),
+        eliminated: eliminatedNames,
+        method: methods.join(', '),
+        events: [],
+        scoreImpact: computeScoreImpact(eliminatedNames, season, contestants, picks)
+      });
+      changed = true;
     }
   }
 
-  // build method string
-  const methods = untracked.map(c => {
-    const name = c.name.split(' ')[0];
-    return c.method === 'medevac' ? `${name} evacuated` : `${name} ${c.method}`;
-  });
-
-  // air date: most recent wednesday
-  const now = new Date();
-  const day = now.getUTCDay();
-  const daysSinceWed = (day + 4) % 7; // wednesday = 3
-  const lastWed = new Date(now);
-  lastWed.setUTCDate(now.getUTCDate() - daysSinceWed);
-  const airDate = lastWed.toISOString().split('T')[0];
-
-  const episode = {
-    number: episodes.length + 1,
-    title: "",
-    airDate,
-    summary: "",
-    eliminated: untracked.map(c => c.name),
-    method: methods.join(', '),
-    events: [],
-    scoreImpact: impactParts.join('. ') + '.'
-  };
-
-  episodes.push(episode);
-  writeFileSync(episodesPath, JSON.stringify(episodes, null, 2) + '\n');
-  console.log(`${seasonId}: added episode ${episode.number} to episodes.json`);
-  return true;
+  if (changed) {
+    episodes.sort((a, b) => a.number - b.number);
+    writeFileSync(episodesPath, JSON.stringify(episodes, null, 2) + '\n');
+    console.log(`${seasonId}: updated episodes.json`);
+  } else {
+    console.log(`${seasonId}: episodes up to date`);
+  }
+  return changed;
 }
 
 function ordinalStr(n) {
@@ -270,9 +392,6 @@ async function scrapeSeason(seasonId) {
   writeFileSync(contestantsPath, newJson + '\n');
   console.log(`${seasonId}: updated contestants.json`);
 
-  // generate episode recap if untracked eliminations exist
-  generateEpisode(seasonId, season, updated, picks);
-
   return true;
 }
 
@@ -281,8 +400,7 @@ async function main() {
 
   if (targetId) {
     await scrapeSeason(targetId);
-    // also backfill episodes for any untracked eliminations
-    backfillEpisodes(targetId);
+    await updateEpisodes(targetId);
     return;
   }
 
@@ -294,8 +412,7 @@ async function main() {
     if (s.status !== 'active') continue;
     const changed = await scrapeSeason(s.id);
     if (changed) anyChanged = true;
-    // backfill episodes even if no contestant changes (catches missed episodes)
-    backfillEpisodes(s.id);
+    await updateEpisodes(s.id);
   }
 
   if (!anyChanged) {
@@ -303,17 +420,18 @@ async function main() {
   }
 }
 
-function backfillEpisodes(seasonId) {
+async function updateEpisodes(seasonId) {
   const seasonPath = join(ROOT, 'data', seasonId, 'season.json');
   const contestantsPath = join(ROOT, 'data', seasonId, 'contestants.json');
   const picksPath = join(ROOT, 'data', seasonId, 'picks.json');
 
   const season = JSON.parse(readFileSync(seasonPath, 'utf-8'));
+  if (!season.wikiSlug) return;
   const contestants = JSON.parse(readFileSync(contestantsPath, 'utf-8'));
   let picks = [];
   try { picks = JSON.parse(readFileSync(picksPath, 'utf-8')); } catch (e) {}
 
-  generateEpisode(seasonId, season, contestants, picks);
+  await scrapeEpisodes(seasonId, season, contestants, picks);
 }
 
 main().catch(e => {
