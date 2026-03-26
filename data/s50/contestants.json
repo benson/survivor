@@ -103,8 +103,8 @@
   {
     "name": "charlie davis",
     "tribe": "kalo",
-    "placement": null,
-    "method": null,
+    "placement": 18,
+    "method": "voted out",
     "jury": false,
     "note": null,
     "bonuses": {},
@@ -180,8 +180,8 @@
   {
     "name": "angelina keeley",
     "tribe": "vatu",
-    "placement": null,
-    "method": null,
+    "placement": 19,
+    "method": "voted out",
     "jury": false,
     "note": null,
     "bonuses": {},
