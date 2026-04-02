@@ -90,7 +90,25 @@
       "angelina keeley"
     ],
     "method": "angelina voted out",
-    "events": [],
+    "events": [
+      {
+        "type": "idolFound",
+        "player": "kamilla karthigesu",
+        "description": "found an idol"
+      }
+    ],
     "scoreImpact": "angelina keeley (19th) — not drafted."
+  },
+  {
+    "number": 6,
+    "title": "The Blood Moon",
+    "airDate": "2026-04-01",
+    "summary": "a mysterious boat arrives delivering an exciting message, drop your buffs! a mad dash ensues when castaways discover that an advantage is hidden deep in the jungle. this week's mouthwatering challenge reward lifts spirits, but only briefly. when the dreaded blood moon is triggered (a true survivor first), it leads to a historic tribal council.",
+    "eliminated": [
+      "kamilla karthigesu"
+    ],
+    "method": "kamilla voted out",
+    "events": [],
+    "scoreImpact": "kamilla karthigesu (17th) — 8 pts for benson's awesome team, dad, i love joe (sameh's team)."
   }
 ]

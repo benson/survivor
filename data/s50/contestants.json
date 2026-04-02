@@ -147,8 +147,8 @@
   {
     "name": "kamilla karthigesu",
     "tribe": "kalo",
-    "placement": null,
-    "method": null,
+    "placement": 17,
+    "method": "voted out",
     "jury": false,
     "note": null,
     "bonuses": {},
@@ -202,8 +202,8 @@
   {
     "name": "colby donaldson",
     "tribe": "vatu",
-    "placement": null,
-    "method": null,
+    "placement": 15,
+    "method": "voted out",
     "jury": false,
     "note": null,
     "bonuses": {},
@@ -213,8 +213,8 @@
   {
     "name": "genevieve mushaluk",
     "tribe": "vatu",
-    "placement": null,
-    "method": null,
+    "placement": 16,
+    "method": "voted out",
     "jury": false,
     "note": null,
     "bonuses": {
