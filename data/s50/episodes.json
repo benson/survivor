@@ -108,7 +108,25 @@
       "kamilla karthigesu"
     ],
     "method": "kamilla voted out",
-    "events": [],
+    "events": [
+      {
+        "type": "idolFound",
+        "player": "rick devens",
+        "description": "found an idol"
+      }
+    ],
     "scoreImpact": "kamilla karthigesu (17th) — 8 pts for benson's awesome team, dad, i love joe (sameh's team)."
+  },
+  {
+    "number": 7,
+    "title": "That's Not How I Play Survivor",
+    "airDate": "2026-04-08",
+    "summary": "feelings of betrayal hit an all-time high following a historic blood moon tribal that featured three eliminations. one person is selected to go on a journey with the potential to earn an advantage. then, a schoolyard pick at this week's challenge leads one team to reward and one individual to immunity.",
+    "eliminated": [
+      "dee valladares"
+    ],
+    "method": "dee voted out",
+    "events": [],
+    "scoreImpact": "dee valladares (14th) — 11 pts for i love joe (sameh's team), annie."
   }
 ]

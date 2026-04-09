@@ -125,8 +125,8 @@
   {
     "name": "dee valladares",
     "tribe": "kalo",
-    "placement": null,
-    "method": null,
+    "placement": 14,
+    "method": "voted out",
     "jury": false,
     "note": null,
     "bonuses": {},
