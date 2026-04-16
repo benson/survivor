@@ -92,8 +92,8 @@
   {
     "name": "coach wade",
     "tribe": "kalo",
-    "placement": null,
-    "method": null,
+    "placement": 12,
+    "method": "voted out",
     "jury": false,
     "note": null,
     "bonuses": {},
@@ -114,8 +114,8 @@
   {
     "name": "chrissy hofbeck",
     "tribe": "kalo",
-    "placement": null,
-    "method": null,
+    "placement": 13,
+    "method": "voted out",
     "jury": false,
     "note": null,
     "bonuses": {},
