@@ -139,7 +139,23 @@
       "chrissy hofbeck"
     ],
     "method": "coach voted out, chrissy voted out",
-    "events": [],
+    "events": [
+      {
+        "type": "idolFound",
+        "player": "jonathan young",
+        "description": "found an idol"
+      },
+      {
+        "type": "idolPlayed",
+        "player": "jonathan young",
+        "description": "played an idol"
+      },
+      {
+        "type": "idolPlayed",
+        "player": "rick devens",
+        "description": "played an idol"
+      }
+    ],
     "scoreImpact": "coach wade (12th) — 13 pts for annie. chrissy hofbeck (13th) — 12 pts for mom(2025 's winner!)."
   }
 ]
