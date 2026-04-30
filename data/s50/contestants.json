@@ -261,8 +261,8 @@
   {
     "name": "stephanie lagrossa",
     "tribe": "vatu",
-    "placement": null,
-    "method": null,
+    "placement": 11,
+    "method": "voted out",
     "jury": false,
     "note": null,
     "bonuses": {},
