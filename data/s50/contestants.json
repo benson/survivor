@@ -26,8 +26,8 @@
   {
     "name": "emily flippen",
     "tribe": "cila",
-    "placement": null,
-    "method": null,
+    "placement": 8,
+    "method": "voted out",
     "jury": false,
     "note": null,
     "bonuses": {},
@@ -59,8 +59,8 @@
   {
     "name": "ozzy lusth",
     "tribe": "cila",
-    "placement": null,
-    "method": null,
+    "placement": 7,
+    "method": "voted out",
     "jury": false,
     "note": null,
     "bonuses": {},
