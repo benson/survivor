@@ -15,8 +15,8 @@
   {
     "name": "cirie fields",
     "tribe": "cila",
-    "placement": null,
-    "method": null,
+    "placement": 5,
+    "method": "voted out",
     "jury": false,
     "note": null,
     "bonuses": {},
@@ -70,8 +70,8 @@
   {
     "name": "rick devens",
     "tribe": "cila",
-    "placement": null,
-    "method": null,
+    "placement": 6,
+    "method": "voted out",
     "jury": false,
     "note": null,
     "bonuses": {},

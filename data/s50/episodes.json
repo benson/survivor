@@ -177,7 +177,40 @@
       "emily flippen"
     ],
     "method": "emily voted out",
-    "events": [],
+    "events": [
+      {
+        "type": "idolPlayed",
+        "player": "aubry bracco",
+        "description": "played an idol"
+      },
+      {
+        "type": "idolPlayed",
+        "player": "ozzy lusth",
+        "description": "played an idol"
+      }
+    ],
     "scoreImpact": "emily flippen (8th) — 17 pts for ellie, benson's awesome team, lil, dad, annie."
+  },
+  {
+    "number": 12,
+    "title": "Inconceivable",
+    "airDate": "2026-05-13",
+    "summary": "this week's immunity challenge is riddled with frustration, putting slow and steady gameplay to the test. as the race to $2 million draws closer, idols and advantages come to the forefront. then, a self‑proclaimed rat at the manulevu camp spills information in hopes of leading to personal triumph.",
+    "eliminated": [
+      "rick devens"
+    ],
+    "method": "rick voted out",
+    "events": [],
+    "scoreImpact": "rick devens (6th) — 19 pts for benson's awesome team, mom(2025 's winner!)."
+  },
+  {
+    "number": 13,
+    "title": "",
+    "airDate": "2026-05-20",
+    "summary": "",
+    "eliminated": [],
+    "method": "",
+    "events": [],
+    "scoreImpact": ""
   }
 ]
