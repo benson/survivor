@@ -205,12 +205,14 @@
   },
   {
     "number": 13,
-    "title": "",
+    "title": "Reverse the Curse",
     "airDate": "2026-05-20",
-    "summary": "",
-    "eliminated": [],
+    "summary": "back from tribal, tensions rise following the exit of a particularly historic player. the final five immunity challenge ends in a showdown and features one of the closest finishes the show has ever seen. jeff reveals the outcomes of the remaining in-game fan votes and how they impact the final stage of the competition. then, one castaway will be crowned sole survivor and awarded the $2 million prize, during the three-hour live season finale of survivor 50.",
+    "eliminated": [
+      "tiffany ervin"
+    ],
     "method": "",
     "events": [],
-    "scoreImpact": ""
+    "scoreImpact": "tiffany ervin (4th) — 21 pts for dad."
   }
 ]

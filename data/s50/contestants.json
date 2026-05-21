@@ -48,8 +48,8 @@
   {
     "name": "joe hunter",
     "tribe": "cila",
-    "placement": null,
-    "method": null,
+    "placement": 2,
+    "method": "runner-up",
     "jury": false,
     "note": null,
     "bonuses": {},
@@ -136,8 +136,8 @@
   {
     "name": "jonathan young",
     "tribe": "kalo",
-    "placement": null,
-    "method": null,
+    "placement": 1,
+    "method": "runner-up",
     "jury": false,
     "note": null,
     "bonuses": {},
@@ -169,8 +169,8 @@
   {
     "name": "tiffany ervin",
     "tribe": "kalo",
-    "placement": null,
-    "method": null,
+    "placement": 4,
+    "method": "voted out",
     "jury": false,
     "note": null,
     "bonuses": {},
@@ -191,8 +191,8 @@
   {
     "name": "aubry bracco",
     "tribe": "vatu",
-    "placement": null,
-    "method": null,
+    "placement": 0,
+    "method": "winner",
     "jury": false,
     "note": null,
     "bonuses": {},
@@ -248,7 +248,7 @@
   {
     "name": "rizo velovic",
     "tribe": "vatu",
-    "placement": null,
+    "placement": 3,
     "method": null,
     "jury": false,
     "note": null,
