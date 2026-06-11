@@ -66,7 +66,8 @@ function computeStandings(season, contestants, picks) {
   // active contestants get a floor score: the minimum they're guaranteed
   // (as if they were the very next person eliminated)
   const eliminatedCount = contestants.filter(c => c.placement != null).length;
-  const activeFloor = eliminatedCount > 0 ? eliminatedCount + 1 : 0;
+  const activeCount = contestants.filter(c => c.placement == null).length;
+  const activeFloor = eliminatedCount > 0 && activeCount > 0 ? eliminatedCount + 1 : 0;
 
   const results = picks.map(player => {
     const allNames = [...player.picks, ...(player.alternates || [])];

@@ -15,7 +15,7 @@
   {
     "name": "cirie fields",
     "tribe": "cila",
-    "placement": 5,
+    "placement": 6,
     "method": "voted out",
     "jury": false,
     "note": null,
@@ -26,7 +26,7 @@
   {
     "name": "emily flippen",
     "tribe": "cila",
-    "placement": 8,
+    "placement": 9,
     "method": "voted out",
     "jury": false,
     "note": null,
@@ -48,8 +48,8 @@
   {
     "name": "joe hunter",
     "tribe": "cila",
-    "placement": 2,
-    "method": "runner-up",
+    "placement": 3,
+    "method": "second runner-up",
     "jury": false,
     "note": null,
     "bonuses": {},
@@ -59,7 +59,7 @@
   {
     "name": "ozzy lusth",
     "tribe": "cila",
-    "placement": 7,
+    "placement": 8,
     "method": "voted out",
     "jury": false,
     "note": null,
@@ -70,7 +70,7 @@
   {
     "name": "rick devens",
     "tribe": "cila",
-    "placement": 6,
+    "placement": 7,
     "method": "voted out",
     "jury": false,
     "note": null,
@@ -136,7 +136,7 @@
   {
     "name": "jonathan young",
     "tribe": "kalo",
-    "placement": 1,
+    "placement": 2,
     "method": "runner-up",
     "jury": false,
     "note": null,
@@ -169,7 +169,7 @@
   {
     "name": "tiffany ervin",
     "tribe": "kalo",
-    "placement": 4,
+    "placement": 5,
     "method": "voted out",
     "jury": false,
     "note": null,
@@ -191,7 +191,7 @@
   {
     "name": "aubry bracco",
     "tribe": "vatu",
-    "placement": 0,
+    "placement": 1,
     "method": "winner",
     "jury": false,
     "note": null,
@@ -248,8 +248,8 @@
   {
     "name": "rizo velovic",
     "tribe": "vatu",
-    "placement": 3,
-    "method": null,
+    "placement": 4,
+    "method": "fire-making",
     "jury": false,
     "note": null,
     "bonuses": {
@@ -261,7 +261,7 @@
   {
     "name": "stephanie lagrossa",
     "tribe": "vatu",
-    "placement": 11,
+    "placement": 10,
     "method": "voted out",
     "jury": false,
     "note": null,

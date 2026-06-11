@@ -21,6 +21,55 @@ async function fetchWikiHTML(slug) {
   return data.parse.text['*'];
 }
 
+function normalizeNameText(value) {
+  return String(value)
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function isEditDistanceAtMostOne(a, b) {
+  if (Math.abs(a.length - b.length) > 1) return false;
+
+  let edits = 0;
+  let i = 0;
+  let j = 0;
+  while (i < a.length && j < b.length) {
+    if (a[i] === b[j]) {
+      i++;
+      j++;
+      continue;
+    }
+
+    edits++;
+    if (edits > 1) return false;
+    if (a.length > b.length) i++;
+    else if (b.length > a.length) j++;
+    else {
+      i++;
+      j++;
+    }
+  }
+
+  return edits + (a.length - i) + (b.length - j) <= 1;
+}
+
+function contestantNameMatches(text, name) {
+  const normalizedText = normalizeNameText(text);
+  const tokens = normalizedText.split(/\s+/).filter(Boolean);
+  const parts = normalizeNameText(name).split(/\s+/).filter(Boolean);
+  const firstName = parts[0] || '';
+  const lastName = parts.slice(1).join(' ');
+
+  if (tokens.includes(firstName)) return true;
+  if (lastName.length > 2 && normalizedText.includes(lastName)) return true;
+
+  // Handles small source/local spelling differences, such as Stephenie/Stephanie.
+  return firstName.length >= 5 && tokens.some(token => isEditDistanceAtMostOne(token, firstName));
+}
+
 function parseContestants(html, existingContestants) {
   const $ = cheerio.load(html);
   const contestantMap = new Map();
@@ -46,8 +95,7 @@ function parseContestants(html, existingContestants) {
       // match a contestant name in any cell
       let matched = null;
       for (const [name] of contestantMap) {
-        const lastName = name.split(' ').slice(1).join(' ');
-        if (lastName.length > 2 && rowText.includes(lastName)) {
+        if (contestantNameMatches(rowText, name)) {
           matched = name;
           break;
         }
@@ -82,6 +130,8 @@ function parseContestants(html, existingContestants) {
       } else if (/sole survivor|winner/i.test(rawFinish)) {
         contestant.method = 'winner';
         contestant.placement = 1;
+      } else if (/second\s*runner/i.test(rawFinish)) {
+        contestant.method = 'second runner-up';
       } else if (/runner/i.test(rawFinish)) {
         contestant.method = 'runner-up';
       } else if (/quit/i.test(rawFinish)) {
@@ -102,15 +152,18 @@ function parseContestants(html, existingContestants) {
       $(row).find('td, th').slice(1).each((_, td) => {
         const text = $(td).text().trim().toLowerCase();
         if (!text || text === 'tbd') return;
-        elimOrder++;
+
+        let matchedContestant = null;
         for (const [name, contestant] of contestantMap) {
-          const firstName = name.split(' ')[0];
-          const lastName = name.split(' ').slice(1).join(' ');
-          if (text.includes(firstName) || (lastName.length > 2 && text.includes(lastName))) {
-            contestant._elimOrder = elimOrder; // always overwrite
+          if (contestantNameMatches(text, name)) {
+            matchedContestant = contestant;
             break;
           }
         }
+        if (!matchedContestant) return;
+
+        elimOrder++;
+        matchedContestant._elimOrder = elimOrder; // always overwrite
       });
     });
   });
