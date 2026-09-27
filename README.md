@@ -12,9 +12,17 @@ Picking stays open until the commissioner locks it. Picks are private at the API
 
 Benson's verified Google account in the dedicated Clerk application is the commissioner. The initial bootstrap credential has been retired. Sign in, then open **Commissioner** in the account menu to create a family invitation. Rotating the family invite does not remove existing members.
 
-Use the commissioner panel to lock/reopen picks, record cumulative placement and bonus results, and export teams and the change log. Results recalculate scores immediately. Individual immunity wins count; tribal wins and Shots in the Dark do not. A save requires the current record version, so another device cannot silently overwrite a newer save. Saved drafts do not enter the standings until submitted.
+Use the commissioner panel to lock/reopen picks, correct cumulative placement and bonus results, and export teams and the change log. Individual immunity wins count; tribal wins and Shots in the Dark do not. A save requires the current record version, so another device cannot silently overwrite a newer save. Saved drafts do not enter the standings until submitted.
 
-Episode recaps live in `data/s51/episodes.json`. The official cast and Episode 1 results are sourced from the links in `data/s51/season.json`. Subsequent scoring is commissioner-managed. The legacy wiki scraper is not used for Season 51. Seasons 49 and 50 remain in `data/` as historical records.
+## Automatic results and spoilers
+
+A Cloudflare cron checks the public [survivoR dataset](https://github.com/doehm/survivoR) daily at **8:15 a.m., 12:15 p.m., and 4:15 p.m. America/New_York**, including daylight-saving changes. Only episodes with air dates before the current Eastern date can publish. The extra checks accommodate delayed source updates and changed broadcast nights; availability depends on the upstream dataset. No laptop or manual action is needed.
+
+The importer reads six structured datasets at one immutable Git commit. It validates cast IDs, episode continuity, cast coverage, challenge and idol events, and placements before atomically storing cumulative episode snapshots. Unchanged imports are idempotent. Source outages or validation failures retain the last confirmed results and retry at the next scheduled check. Commissioner corrections live in a separate episode history and carry forward alongside later automatic bonuses. The panel includes a manual check and corrections as fallbacks.
+
+Every person starts **before episode 1**. Watched progress is saved per Clerk account across devices, or per browser for guests, and never advances automatically. The API projects cast status, tribes, scores and episode details through that episode; unseen episodes expose only a number and air date. The app starts with a safe cast while identity loads and clears result views before switching accounts or rewinding. **My team** always shows all seven picks, with scores collapsed. Changing picks requires catching up to the latest published episode so eligibility cannot reveal an unseen elimination. Exporting the full league has an explicit spoiler confirmation.
+
+The official cast and fallback premiere snapshot are sourced from the links in `data/s51/season.json`. The legacy wiki scraper is not scheduled and is not used for Season 51. Seasons 49 and 50 remain in `data/` as historical records.
 
 ## Development
 
@@ -33,9 +41,12 @@ Preview: `http://127.0.0.1:4173`. The production Clerk key only works on the pro
 Pushes to `master` run tests, build the public allowlist, and deploy `dist/` through GitHub Pages. Only public files enter the artifact. Worker changes are deployed separately:
 
 ```sh
-npx wrangler d1 execute survivor-draft --remote --config worker-v2/wrangler.toml --file worker-v2/schema.sql
+# Existing installations: additive migration, preserving teams and members.
+npx wrangler d1 execute survivor-draft --remote --config worker-v2/wrangler.toml --file worker-v2/migrations/0002_episodes.sql
 npm run deploy:api
 ```
+
+For a new database, use `worker-v2/schema.sql` instead of the migration. Deploy the migrated API before the new frontend. Wrangler registers the hourly UTC trigger; the handler selects the three Eastern check windows. The commissioner panel's **Check for updates** runs the same importer immediately.
 
 The legacy `worker/` and its KV remain untouched. V2 uses `worker-v2/`, its own D1 database, Clerk JWT signature/issuer/time/origin verification, membership checks, optimistic concurrency, and an atomic database lock guard. No Clerk secret key is required: JWTs are verified through the dedicated instance's public JWKS.
 
