@@ -10,7 +10,7 @@ Picking stays open until the commissioner locks it. Picks are private at the API
 
 ## Commissioner
 
-The initial commissioner joins with a one-time bootstrap code, stored only in `output/setup/commissioner.md` on the setup computer. The Worker stores its SHA-256 digest as the `COMMISSIONER_INVITE_HASH` secret. Only the first account to claim it becomes commissioner. After claiming it, create family invitations from **Commissioner** in the account menu. Rotating the family invite does not remove existing members.
+Benson's verified Google account in the dedicated Clerk application is the commissioner. The initial bootstrap credential has been retired. Sign in, then open **Commissioner** in the account menu to create a family invitation. Rotating the family invite does not remove existing members.
 
 Use the commissioner panel to lock/reopen picks, record cumulative placement and bonus results, and export teams and the change log. Results recalculate scores immediately. Individual immunity wins count; tribal wins and Shots in the Dark do not. A save requires the current record version, so another device cannot silently overwrite a newer save. Saved drafts do not enter the standings until submitted.
 
@@ -40,3 +40,5 @@ npm run deploy:api
 The legacy `worker/` and its KV remain untouched. V2 uses `worker-v2/`, its own D1 database, Clerk JWT signature/issuer/time/origin verification, membership checks, optimistic concurrency, and an atomic database lock guard. No Clerk secret key is required: JWTs are verified through the dedicated instance's public JWKS.
 
 Public configuration: `src/config.js`. Server configuration: `worker-v2/wrangler.toml`. Secrets belong in Wrangler, never in this repository. Google OAuth must be configured on the dedicated Clerk production instance with the callback `https://clerk.survivordraft.bensonperry.com/v1/oauth_callback`.
+
+Google production sign-in is configured in the dedicated `perry-family-survivor` Google Cloud project, with basic identity scopes only. Apple sign-in requires an active Apple Developer membership and an Apple Services ID, signing key, key ID, and team ID configured in the same Clerk instance. Keep an unfinished provider disabled until its credentials work. See [Clerk's Apple setup guide](https://clerk.com/docs/guides/configure/auth-strategies/social-connections/apple).
