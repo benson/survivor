@@ -1,7 +1,8 @@
 import { createRemoteJWKSet, jwtVerify } from 'jose';
-import initialCast from '../data/s51/contestants.json' with { type: 'json' };
 import season from '../data/s51/season.json' with { type: 'json' };
 import { isOpen, validateTeam, validateResult } from '../src/domain.js';
+import { seasonView, preferences } from './episode-store.js';
+import { syncResults, scheduledHour } from './automatic-results.js';
 
 const keys = new Map();
 const fail = (message, status = 400) => { throw Object.assign(new Error(message), { status }); };
@@ -25,15 +26,16 @@ async function body(request) {
   try { return JSON.parse(value); } catch { fail('Invalid request.'); }
 }
 async function snapshot(db) {
-  const [config, resultRows] = await Promise.all([db.prepare('SELECT * FROM league WHERE id = 1').first(), db.prepare('SELECT * FROM results').all()]);
-  const overrides = new Map(resultRows.results.map(row => [row.id, row]));
-  return { settings: { open: !!config.open, deadline: config.deadline, revision: config.revision, lastEpisode: config.last_episode },
-    cast: initialCast.map(c => { const row = overrides.get(c.id); return row ? { ...c, placement: row.placement, bonuses: parse(row.bonuses), revision: row.revision } : { ...c, revision: 0 }; }) };
+  return seasonView(db, 30);
 }
 const teamModel = row => row ? { draft: parse(row.draft), submitted: parse(row.submitted), revision: row.revision, updatedAt: row.updated_at, submittedAt: row.submitted_at } : { draft: null, submitted: null, revision: 0 };
 
 export function createWorker(authenticate = verifySession) {
   return {
+    async scheduled(controller, env, ctx) {
+      const now = new Date(controller.scheduledTime);
+      if (scheduledHour(now)) ctx.waitUntil(syncResults(env, { now }));
+    },
     async fetch(request, env) {
       const origin = request.headers.get('Origin');
       const allowed = list(env.CLERK_AUTHORIZED_PARTIES);
@@ -44,8 +46,14 @@ export function createWorker(authenticate = verifySession) {
         if (origin && !allowed.includes(origin)) fail('Origin not allowed.', 403);
         if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers });
         const path = new URL(request.url).pathname;
-        if (path === '/health' && request.method === 'GET') { await env.DB.prepare('SELECT id FROM league').first(); return json({ ok: true, version: 2 }); }
-        if (path === '/season' && request.method === 'GET') return json(await snapshot(env.DB));
+        if (path === '/health' && request.method === 'GET') { await env.DB.prepare('SELECT id FROM league').first(); return json({ ok: true, version: 3 }); }
+        if (path === '/season' && request.method === 'GET') {
+          const viewer = request.headers.has('Authorization') ? await authenticate(request, env) : null;
+          const preference = await preferences(env.DB, viewer);
+          const guestThrough = Number(new URL(request.url).searchParams.get('through') || 0);
+          const through = viewer ? preference.watchedThrough : guestThrough;
+          return json({ ...await seasonView(env.DB, through), preferences: preference });
+        }
         const userId = await authenticate(request, env);
         const member = await env.DB.prepare('SELECT * FROM members WHERE user_id = ?').bind(userId).first();
         if (path === '/join' && request.method === 'POST') {
@@ -61,7 +69,17 @@ export function createWorker(authenticate = verifySession) {
           await env.DB.prepare('INSERT INTO members (user_id, name, role) VALUES (?, ?, ?)').bind(userId, input.name.trim(), isAdmin ? 'admin' : 'member').run();
           return json({ ok: true });
         }
-        if (path === '/me' && request.method === 'GET') return json({ member, team: member ? teamModel(await env.DB.prepare('SELECT * FROM teams WHERE user_id = ?').bind(userId).first()) : null });
+        if (path === '/me' && request.method === 'GET') return json({ member, preferences: await preferences(env.DB, userId), team: member ? teamModel(await env.DB.prepare('SELECT * FROM teams WHERE user_id = ?').bind(userId).first()) : null });
+        if (path === '/preferences' && request.method === 'PUT') {
+          const input = await body(request), latest = await snapshot(env.DB);
+          if (!Number.isInteger(input.watchedThrough) || input.watchedThrough < 0 || input.watchedThrough > latest.view.latestEpisode || !Number.isInteger(input.revision) || input.revision < 0) fail('Choose an available episode.');
+          const now = new Date().toISOString();
+          const result = input.revision === 0
+            ? await env.DB.prepare('INSERT INTO viewer_preferences(user_id,watched_episode,revision,updated_at) VALUES(?,?,1,?) ON CONFLICT(user_id) DO NOTHING').bind(userId,input.watchedThrough,now).run()
+            : await env.DB.prepare('UPDATE viewer_preferences SET watched_episode=?,revision=revision+1,updated_at=? WHERE user_id=? AND revision=?').bind(input.watchedThrough,now,userId,input.revision).run();
+          if (!result.meta.changes) fail('Your watched setting changed on another device. Refresh and try again.',409);
+          return json({ ...await seasonView(env.DB,input.watchedThrough), preferences: await preferences(env.DB,userId) });
+        }
         if (!member) fail('Join the family league with your invite code.', 403);
         if (path === '/league' && request.method === 'GET') {
           const { settings } = await snapshot(env.DB);
@@ -73,6 +91,8 @@ export function createWorker(authenticate = verifySession) {
           const input = await body(request);
           const { settings, cast } = await snapshot(env.DB);
           if (!isOpen(settings)) fail('Picking is locked. Your submitted team is unchanged.', 423);
+          const preference = await preferences(env.DB,userId);
+          if (preference.watchedThrough < settings.lastEpisode) fail('Catch up to the latest available episode before changing picks. You can still view your team.',409);
           if (!Number.isInteger(input.revision) || input.revision < 0 || typeof input.submit !== 'boolean') fail('Invalid save version.');
           const error = validateTeam(input.team, cast, { complete: input.submit });
           if (error) fail(error);
@@ -107,7 +127,12 @@ export function createWorker(authenticate = verifySession) {
           const update = await env.DB.prepare('UPDATE league SET open=?, revision=revision+1 WHERE id=1 AND revision=?').bind(input.open ? 1 : 0, input.revision).run();
           if (!update.meta.changes) fail('League settings changed. Refresh and try again.', 409);
           await env.DB.prepare('INSERT INTO audit (user_id,action,detail) VALUES (?,?,?)').bind(userId, 'picking', input.open ? 'Picking reopened' : 'Picking locked; submitted teams revealed').run();
-          return json(await snapshot(env.DB));
+          return json({ settings: (await snapshot(env.DB)).settings });
+        }
+        if (path === '/admin/sync' && request.method === 'POST') return json(await syncResults(env));
+        if (path === '/admin/sync' && request.method === 'GET') {
+          const row = await env.DB.prepare('SELECT last_checked,last_success,status,error FROM sync_state WHERE id=1').first();
+          return json(row);
         }
         if (path === '/admin/result' && request.method === 'PUT') {
           const input = await body(request);
@@ -118,15 +143,19 @@ export function createWorker(authenticate = verifySession) {
           if (!Number.isInteger(input.revision) || input.revision !== current.revision) fail('This result changed. Refresh and try again.', 409);
           const now = new Date().toISOString();
           // Unique placement index plus revision guard prevent conflicting commissioner saves.
-          const write = await env.DB.prepare(`INSERT INTO results(id,placement,bonuses,episode,revision,updated_at) VALUES (?,?,?,?,1,?)
+          const write = env.DB.prepare(`INSERT INTO results(id,placement,bonuses,episode,revision,updated_at) VALUES (?,?,?,?,1,?)
             ON CONFLICT(id) DO UPDATE SET placement=excluded.placement,bonuses=excluded.bonuses,episode=excluded.episode,revision=results.revision+1,updated_at=excluded.updated_at WHERE results.revision=?`)
-            .bind(input.id, input.placement, JSON.stringify(input.bonuses), input.episode, now, input.revision).run();
-          if (!write.meta.changes) fail('This result changed. Refresh and try again.', 409);
-          await env.DB.batch([
-            env.DB.prepare('UPDATE league SET last_episode=MAX(last_episode,?) WHERE id=1').bind(input.episode),
-            env.DB.prepare('INSERT INTO audit(user_id,action,detail) VALUES (?,?,?)').bind(userId, 'result', JSON.stringify({ name: current.name, before: { placement: current.placement, bonuses: current.bonuses }, after: input, at: now }))
+            .bind(input.id, input.placement, JSON.stringify(input.bonuses), input.episode, now, input.revision);
+          // D1 batches are transactional. Each dependent write runs only if the
+          // previous statement changed a row, preserving the revision guard.
+          const writes = await env.DB.batch([
+            write,
+            env.DB.prepare('INSERT INTO result_history(episode,id,placement,bonuses,revision,updated_at) SELECT ?,?,?,?,?,? WHERE changes()>0 ON CONFLICT(episode,id) DO UPDATE SET placement=excluded.placement,bonuses=excluded.bonuses,revision=excluded.revision,updated_at=excluded.updated_at').bind(input.episode,input.id,input.placement,JSON.stringify(input.bonuses),input.revision+1,now),
+            env.DB.prepare('UPDATE league SET last_episode=MAX(last_episode,?) WHERE id=1 AND changes()>0').bind(input.episode),
+            env.DB.prepare('INSERT INTO audit(user_id,action,detail) SELECT ?,?,? WHERE changes()>0').bind(userId, 'result', JSON.stringify({ name: current.name, before: { placement: current.placement, bonuses: current.bonuses }, after: input, at: now }))
           ]);
-          return json(await snapshot(env.DB));
+          if (!writes[0].meta.changes) fail('This result changed. Refresh and try again.', 409);
+          return json({ ok: true });
         }
         if (path === '/admin/export' && request.method === 'GET') {
           const state = await snapshot(env.DB);

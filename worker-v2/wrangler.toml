@@ -3,6 +3,11 @@ main = "index.js"
 compatibility_date = "2026-09-01"
 workers_dev = true
 
+# UTC trigger; the handler selects 8:15am, 12:15pm and 4:15pm America/New_York,
+# including daylight-saving changes. Runs in Cloudflare, independent of a laptop.
+[triggers]
+crons = ["15 * * * *"]
+
 [vars]
 CLERK_ISSUER = "https://clerk.survivordraft.bensonperry.com"
 CLERK_AUTHORIZED_PARTIES = "https://survivordraft.bensonperry.com,http://localhost:4173,http://127.0.0.1:4173"

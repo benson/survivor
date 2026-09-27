@@ -1,9 +1,7 @@
 name: scrape wiki
 
 on:
-  schedule:
-    # wednesday night → thursday morning UTC (episodes air wednesday evening US)
-    - cron: '0 2,4,6,8 * * 4'  # thursday 2am, 4am, 6am, 8am UTC
+  # Historical scraper only. Season 51 imports run in the Cloudflare Worker.
   workflow_dispatch:
 
 permissions:

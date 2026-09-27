@@ -1,24 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { DatabaseSync } from 'node:sqlite';
-import { createWorker } from '../worker-v2/index.js';
+import { fixture } from './helpers.js';
 import { standings, validateTeam, isOpen } from '../src/domain.js';
 import cast from '../data/s51/contestants.json' with { type:'json' };
 const selected = cast.filter(c=>c.placement===null).slice(0,7).map(c=>c.id);
 const team = {name:'Test tribe',picks:selected};
-function fixture() {
-  const sql = new DatabaseSync(':memory:');sql.exec(readFileSync(new URL('../worker-v2/schema.sql',import.meta.url),'utf8'));
-  sql.exec("INSERT INTO members(user_id,name,role) VALUES('owner','Owner','admin'),('alice','Alice','member'),('bob','Bob','member')");
-  const db={prepare(query){let values=[];return {bind(...args){values=args;return this;},async first(){return sql.prepare(query).get(...values)||null;},async all(){return {results:sql.prepare(query).all(...values)};},async run(){const result=sql.prepare(query).run(...values);return {meta:{changes:Number(result.changes)}};}}},async batch(queries){return Promise.all(queries.map(q=>q.run()));}};
-  const worker=createWorker(async req=>{const id=req.headers.get('Authorization')?.replace('Bearer ','');if(!id)throw Object.assign(new Error('Sign in'),{status:401});return id;});
-  const env={DB:db,CLERK_AUTHORIZED_PARTIES:'https://survivordraft.bensonperry.com'};
-  const request=async(path,{user='alice',method='GET',body,origin}={})=>{
-    const res=await worker.fetch(new Request('https://api.example'+path,{method,headers:{...(user?{Authorization:'Bearer '+user}:{}),'Content-Type':'application/json',...(origin?{Origin:origin}:{})},...(body?{body:JSON.stringify(body)}:{})}),env);
-    return {status:res.status,data:await res.json()};
-  };
-  return {request,sql};
-}
+
 test('team validation enforces distinct, living castaways and a complete submission',()=>{
   assert.equal(validateTeam(team,cast,{complete:true}),null);
   assert.match(validateTeam({...team,picks:[...selected.slice(0,6),selected[0]]},cast),/once/);
