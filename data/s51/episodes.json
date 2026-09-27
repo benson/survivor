@@ -1,0 +1,13 @@
+[
+  {
+    "number": 1,
+    "title": "Permanent Uncertainty",
+    "date": "2026-09-23",
+    "summary": "The season opens with two tribes and one player on Exile Island. Savu wins the first tribal immunity challenge.",
+    "events": [
+      { "player": "Rob Antonson", "type": "idolFound", "description": "Finds a hidden immunity idol.", "points": 1 },
+      { "player": "Aaliyah Puglia", "type": "eliminated", "description": "Finishes in 21st place.", "points": 1 }
+    ],
+    "source": "https://www.paramountplus.com/sneak-peak/survivor-season-51-episode-1-recap/"
+  }
+]
