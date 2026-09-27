@@ -1,0 +1,20 @@
+name = "survivor-draft-api"
+main = "index.js"
+compatibility_date = "2026-09-01"
+workers_dev = true
+
+[vars]
+CLERK_ISSUER = "https://clerk.survivordraft.bensonperry.com"
+CLERK_AUTHORIZED_PARTIES = "https://survivordraft.bensonperry.com,http://localhost:4173,http://127.0.0.1:4173"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "survivor-draft"
+database_id = "2cfbee62-2adf-4195-b0ae-3168d34bf82d"
+
+[[ratelimits]]
+name = "JOIN_LIMIT"
+namespace_id = "510001"
+[ratelimits.simple]
+limit = 5
+period = 60

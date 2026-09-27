@@ -1,0 +1,16 @@
+{
+  "id": "s51",
+  "number": 51,
+  "name": "Survivor 51",
+  "status": "active",
+  "contestantCount": 21,
+  "picksPerPlayer": 6,
+  "alternates": 1,
+  "submissionsOpen": true,
+  "submissionDeadline": null,
+  "scoring": { "winnerBonus": 5, "runnerUpBonus": 3, "immunityWin": 1, "idolFound": 1, "idolPlayed": 1 },
+  "lastEpisode": 1,
+  "updatedAt": "2026-09-27T19:00:00.000Z",
+  "resultsSource": "https://www.paramountplus.com/sneak-peak/survivor-season-51-episode-1-recap/",
+  "castSource": "https://www.paramountplus.com/sneak-peak/survivor-season-51-cast/"
+}
