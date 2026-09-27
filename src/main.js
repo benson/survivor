@@ -223,6 +223,7 @@ async function action(name, target) {
   }
 }
 document.addEventListener('click',async event=>{
+  if(event.target.closest('.skip-link')){event.preventDefault();document.querySelector('#main')?.focus();return;}
   const target=event.target.closest('[data-action],[data-pick],[data-profile],[data-filter]');if(!target)return;
   try{
     if(target.dataset.pick)return togglePick(target.dataset.pick);
