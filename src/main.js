@@ -66,7 +66,7 @@ function shell(content) {
     <nav aria-label="Main navigation">${[['camp','Camp'],['pick','Pick your team'],['standings','Standings'],['episodes','Episodes'],['rules','Rules']].map(([id,label])=>`<a href="#/${id}" ${view===id?'aria-current="page"':''}>${label}</a>`).join('')}</nav>
     <div class="account">${state.user?button(`<span class="avatar">${esc(state.user.name[0])}</span><span>${esc(state.user.name)}</span>`,'account','account-button'):button('Sign in','signin','button small outline')}</div></header>
     <main id="main" tabindex="-1">${content}</main>
-    <footer class="footer"><a class="footer-brand" href="#/camp">${torch} The family has spoken.</a><div>${link('Past seasons','history','text-link')} ${state.member?.role==='admin'?link('Commissioner','admin','text-link'):''}<a href="https://bensonperry.com" class="text-link">Made by Benson</a></div><small>An unofficial family league. Cast photos © CBS.</small></footer>`;
+    <footer class="footer"><a class="footer-brand" href="#/camp">${torch} The family has spoken.</a><div>${link('Past seasons','history','text-link')} ${state.member?.role==='admin'?link('Commissioner','admin','text-link'):''}<a href="privacy.html" class="text-link">Privacy</a><a href="https://bensonperry.com" class="text-link">Made by Benson</a></div><small>An unofficial family league. Cast photos © CBS.</small></footer>`;
 }
 function camp() {
   const signed = state.team.submitted;
@@ -165,7 +165,7 @@ function resultFields(c) {
 async function render() {
   if(!loaded)return; const generation=++routeGeneration;
   let content;
-  try {content = route()==='history'?await history():({camp,pick:picker,standings:leaderboard,episodes,rules,admin,join:()=>heading('PERRY FAMILY LEAGUE','Welcome to camp.','Sign in, then use your family invite to join.')+`<div class="panel empty-state">${button(state.user?'Enter invite code':'Continue with Google',state.user?'join':'signin')}</div>`}[route()]||camp)();}
+  try {content = route()==='history'?await history():({camp,pick:picker,standings:leaderboard,episodes,rules,admin,join:()=>heading('PERRY FAMILY LEAGUE','Welcome to camp.','Sign in, then use your family invite to join.')+`<div class="panel empty-state">${button(state.user?'Enter invite code':'Sign in',state.user?'join':'signin')}</div>`}[route()]||camp)();}
   catch {content=heading('SOMETHING WENT WRONG','Camp is a little hard to reach.')+button('Try again','refresh');}
   if(generation!==routeGeneration)return;
   app.innerHTML=shell(content);
