@@ -71,10 +71,16 @@ test('automatic refresh is idempotent, retains valid data on source failure, and
   assert.equal(failed.status,'retrying');assert.equal(sql.prepare('SELECT COUNT(*) AS n FROM episode_snapshots').get().n,2);
   assert.equal((await request('/season')).data.view.latestEpisode,2);
 });
-test('a stale watched view cannot reveal eligibility through a team save',async()=>{
+test('unwatched viewers can save any seven from the full cast without revealing results',async()=>{
   const {request}=fixture({watchedThrough:null});
   const res=await request('/team',{method:'PUT',body:{revision:0,submit:true,team:{name:'Test',picks:cast.slice(0,7).map(c=>c.id)}}});
-  assert.equal(res.status,409);assert.match(res.data.error,/Catch up/);assert(!res.data.error.includes('Aaliyah'));
+  assert.equal(res.status,200);
+  assert.deepEqual(res.data.team.submitted.picks,cast.slice(0,7).map(c=>c.id));
+  const visible=(await request('/season')).data;
+  assert.equal(visible.view.watchedThrough,0);
+  assert(visible.cast.every(c=>c.placement===null));
+  assert.equal((await request('/admin/settings',{user:'owner',method:'PUT',body:{open:false,revision:0}})).status,200);
+  assert.equal((await request('/team',{method:'PUT',body:{revision:1,submit:true,team:{name:'Test',picks:cast.slice(1,8).map(c=>c.id)}}})).status,423);
 });
 test('episode corrections preserve future bonuses and do not mutate historical snapshots',()=>{
   const episodes=compileEpisodes(secondEpisode(),now), original=JSON.stringify(episodes);

@@ -6,10 +6,11 @@ import cast from '../data/s51/contestants.json' with { type:'json' };
 const selected = cast.filter(c=>c.placement===null).slice(0,7).map(c=>c.id);
 const team = {name:'Test tribe',picks:selected};
 
-test('team validation enforces distinct, living castaways and a complete submission',()=>{
+test('team validation enforces distinct cast members and seven complete picks',()=>{
   assert.equal(validateTeam(team,cast,{complete:true}),null);
   assert.match(validateTeam({...team,picks:[...selected.slice(0,6),selected[0]]},cast),/once/);
-  assert.match(validateTeam({...team,picks:[cast[0].id]},cast),/still/);
+  assert.equal(validateTeam({...team,picks:[cast[0].id]},cast),null);
+  assert.match(validateTeam({...team,picks:['not-a-cast-member']},cast),/season/);
   assert.match(validateTeam({...team,picks:selected.slice(0,6)},cast,{complete:true}),/seven/);
   assert.match(validateTeam({...team,name:' '},cast,{complete:true}),/name/);
   assert.equal(validateTeam({name:'',picks:[]},cast),null);

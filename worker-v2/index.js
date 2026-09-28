@@ -91,8 +91,6 @@ export function createWorker(authenticate = verifySession) {
           const input = await body(request);
           const { settings, cast } = await snapshot(env.DB);
           if (!isOpen(settings)) fail('Picking is locked. Your submitted team is unchanged.', 423);
-          const preference = await preferences(env.DB,userId);
-          if (preference.watchedThrough < settings.lastEpisode) fail('Catch up to the latest available episode before changing picks. You can still view your team.',409);
           if (!Number.isInteger(input.revision) || input.revision < 0 || typeof input.submit !== 'boolean') fail('Invalid save version.');
           const error = validateTeam(input.team, cast, { complete: input.submit });
           if (error) fail(error);
