@@ -9,11 +9,13 @@ export function isOpen(settings, now = Date.now()) {
 export function validateTeam(team, cast, { complete = false } = {}) {
   if (!team || !Array.isArray(team.picks) || team.picks.length > TOTAL_PICKS) return 'Choose up to seven castaways.';
   if (new Set(team.picks).size !== team.picks.length) return 'Each castaway can appear only once on your team.';
-  const eligible = new Set(cast.filter(c => c.placement == null).map(c => c.id));
-  if (team.picks.some(id => !eligible.has(id))) return 'Choose castaways who are still in the game.';
+  // Picking is independent of results. Everyone chooses from the same full
+  // roster until the commissioner locks teams, without revealing eliminations.
+  const roster = new Set(cast.map(c => c.id));
+  if (team.picks.some(id => !roster.has(id))) return 'Choose people from this season’s cast.';
   if (typeof team.name !== 'string' || team.name.trim().length > 40) return 'Keep your team name under 41 characters.';
   if (complete && !team.name.trim()) return 'Give your team a name.';
-  if (complete && team.picks.length !== TOTAL_PICKS) return 'Choose seven castaways before submitting.';
+  if (complete && team.picks.length !== TOTAL_PICKS) return 'Choose seven people before saving.';
   return null;
 }
 

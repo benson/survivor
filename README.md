@@ -4,15 +4,15 @@ Season 51 at **https://survivordraft.bensonperry.com**. GitHub Pages serves an e
 
 ## Play
 
-Choose seven eligible castaways, name the team, review, and submit. The best six individual totals count. Any number of family members may pick the same castaway. Drafts persist on the device; signed-in members can save them to their account. Drafts and submitted teams are separate. Resubmit edits to enter them.
+The app opens directly to **Pick 7 people**. Choose from the full original cast and press **Save team**. There is no required team name, separate draft save, or review step. Partial selections persist locally; Save team enters all seven picks. Existing team names are preserved and new teams are named automatically. The best six individual totals count. Navigation has three tabs: My team, Scores, and Episodes; rules and administration are in the footer.
 
 Picking stays open until the commissioner locks it. Picks are private at the API until locked. Ties share ranks. Family members need a Clerk account and a family invite. No Gmail access is requested; Google supplies identity only.
 
 ## Commissioner
 
-Benson's verified Google account in the dedicated Clerk application is the commissioner. The initial bootstrap credential has been retired. Sign in, then open **Commissioner** in the account menu to create a family invitation. Rotating the family invite does not remove existing members.
+Benson's verified Google account in the dedicated Clerk application is the commissioner. The initial bootstrap credential has been retired. Sign in, then open **Settings** to create a family invitation. Rotating the family invite does not remove existing members.
 
-Use the commissioner panel to lock/reopen picks, correct cumulative placement and bonus results, and export teams and the change log. Individual immunity wins count; tribal wins and Shots in the Dark do not. A save requires the current record version, so another device cannot silently overwrite a newer save. Saved drafts do not enter the standings until submitted.
+Use Settings to close/reopen picking, correct cumulative placement and bonus results, and export teams and the change log. Individual immunity wins count; tribal wins and Shots in the Dark do not. A save requires the current record version, so another device cannot silently overwrite a newer save. Incomplete local selections do not enter the standings.
 
 ## Automatic results and spoilers
 
@@ -20,7 +20,7 @@ A Cloudflare cron checks the public [survivoR dataset](https://github.com/doehm/
 
 The importer reads six structured datasets at one immutable Git commit. It validates cast IDs, episode continuity, cast coverage, challenge and idol events, and placements before atomically storing cumulative episode snapshots. Unchanged imports are idempotent. Source outages or validation failures retain the last confirmed results and retry at the next scheduled check. Commissioner corrections live in a separate episode history and carry forward alongside later automatic bonuses. The panel includes a manual check and corrections as fallbacks.
 
-Every person starts **before episode 1**. Watched progress is saved per Clerk account across devices, or per browser for guests, and never advances automatically. The API projects cast status, tribes, scores and episode details through that episode; unseen episodes expose only a number and air date. The app starts with a safe cast while identity loads and clears result views before switching accounts or rewinding. **My team** always shows all seven picks, with scores collapsed. Changing picks requires catching up to the latest published episode so eligibility cannot reveal an unseen elimination. Exporting the full league has an explicit spoiler confirmation.
+Every person starts **before episode 1**. The **I’ve watched** selector saves progress per Clerk account across devices, or per browser for guests, and never advances automatically. The API projects scores and episode details through that episode; unseen episodes expose only a number and air date. The app starts with a safe cast while identity loads and clears result views before switching accounts or rewinding. **My team** always shows all seven portraits, with score details collapsed. Picking and profile dialogs use the full original roster regardless of watched progress or elimination, preventing eligibility spoilers and allowing late viewers to save normally. The manual closing time is the sole cutoff for changes. Exporting the full league has an explicit spoiler confirmation.
 
 The official cast and fallback premiere snapshot are sourced from the links in `data/s51/season.json`. The legacy wiki scraper is not scheduled and is not used for Season 51. Seasons 49 and 50 remain in `data/` as historical records.
 
