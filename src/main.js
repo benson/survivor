@@ -158,9 +158,9 @@ function togglePick(id) {
 function leaderboard() {
   const teams = state.league.teams;
   return `${heading('','Scores','',button(icon('refresh')+' Refresh','refresh','button outline'))}
-    ${!state.user||!state.member?`<div class="panel empty-state">${icon('people','large')}<h2>Join the family</h2><p>Use your family invite to join.</p>${button(state.user?'Join the league':'Sign in to the league',state.user?'join':'signin')}</div>`:
-    state.league.hidden?`<div class="notice">${icon('lock')} Scores appear when Benson closes picking.</div><div class="member-grid">${teams.map(t=>`<article class="panel member-card"><span class="avatar">${esc(t.player[0])}</span><h3>${esc(t.player)}${t.mine?' <small>(you)</small>':''}</h3><p>${esc(t.name)}</p><span class="pill ${t.submitted?'green':''}">${icon(t.submitted?'check':'clock')}${t.submitted?'Team saved':'Choosing'}</span></article>`).join('')||'<div class="empty-state"><h2>No teams yet.</h2></div>'}</div>`:
-    standings(state.cast,teams.filter(t=>t.submitted),state.season).map(t=>`<details class="standing"><summary><span class="rank">${t.rank===1?icon('trophy'):String(t.rank).padStart(2,'0')}</span><span class="standing-name"><strong>${esc(t.name)}</strong><small>${esc(t.player)}${t.mine?' · Your team':''}</small></span><span class="standing-faces">${t.scored.slice(0,4).map(c=>image(c)).join('')}</span><span class="remaining">${t.remaining} still in</span><span class="score">${t.total}<small>points</small></span><span class="expand">+</span></summary>${scoreTable(t)}</details>`).join('')||'<div class="panel empty-state"><h2>No teams yet.</h2><p>Save your team to get started.</p></div>'}
+    ${!state.user||!state.member?`<div class="panel empty-state">${icon('people','large')}<h2>Join the family</h2><p>Use your family invite to join.</p>${button(state.user?'Join the family':'Sign in',state.user?'join':'signin')}</div>`:
+    state.league.hidden?`<div class="notice">${icon('lock')} Scores appear when Benson closes picking.</div><div class="member-grid">${teams.map(t=>`<article class="panel member-card"><span class="avatar">${esc(t.player[0])}</span><h3>${esc(t.player)}${t.mine?' <small>(you)</small>':''}</h3><span class="pill ${t.submitted?'green':''}">${icon(t.submitted?'check':'clock')}${t.submitted?'Team saved':'Choosing'}</span></article>`).join('')||'<div class="empty-state"><h2>No teams yet.</h2></div>'}</div>`:
+    standings(state.cast,teams.filter(t=>t.submitted),state.season).map(t=>`<details class="standing"><summary><span class="rank">${t.rank===1?icon('trophy'):String(t.rank).padStart(2,'0')}</span><span class="standing-name"><strong>${esc(t.player||t.name)}</strong>${t.mine?'<small>Your team</small>':''}</span><span class="standing-faces">${t.scored.slice(0,4).map(c=>image(c)).join('')}</span><span class="remaining">${t.remaining} still in</span><span class="score">${t.total}<small>points</small></span><span class="expand">+</span></summary>${scoreTable(t)}</details>`).join('')||'<div class="panel empty-state"><h2>No teams yet.</h2><p>Save your team to get started.</p></div>'}
     ${state.member&&!state.league.hidden?'<p class="source-note">Active castaways have provisional placement points.</p>':''}`;
 }
 function scoreTable(team) {
@@ -220,7 +220,7 @@ async function signin() {if(state.auth){modal.close();await state.auth.signIn();
 function joinDialog() {
   if(!state.user)return signin();
   const invite = sessionRead('survivor:invite')||'';
-  showModal(`<div class="modal-body"><h2 id="modal-title">Join the family</h2><form id="join-form"><label class="field">Your name<input name="name" maxlength="40" required value="${esc(state.user.name)}" autocomplete="given-name"></label>${invite?`<input type="hidden" name="code" value="${esc(invite)}">`:'<label class="field">Invite code<input name="code" required autocomplete="off" spellcheck="false"></label>'}<p class="form-error" role="alert"></p><button class="button wide">Join the league ${icon('arrow')}</button></form></div>`);
+  showModal(`<div class="modal-body"><h2 id="modal-title">Join the family</h2><form id="join-form"><label class="field">Your name<input name="name" maxlength="40" required value="${esc(state.user.name)}" autocomplete="given-name"></label>${invite?`<input type="hidden" name="code" value="${esc(invite)}">`:'<label class="field">Invite code<input name="code" required autocomplete="off" spellcheck="false"></label>'}<p class="form-error" role="alert"></p><button class="button wide">Join ${icon('arrow')}</button></form></div>`);
 }
 async function save() {
   if(state.syncing)return;
@@ -246,7 +246,7 @@ async function action(name, target) {
   if(name==='spoilers')return spoilerDialog(target.dataset.episode ? Number(target.dataset.episode) : state.view.watchedThrough);
   if(name==='signin')return signin();
   if(name==='join')return joinDialog();
-  if(name==='account')return showModal(`<div class="modal-body"><h2 id="modal-title">${esc(state.user.name)}</h2><div class="stack">${button('Hide spoilers','spoilers','button outline')}${button('Account settings','profile-account','button outline')}${!state.member?button('Join the league','join','button outline'):''}${state.member?.role==='admin'?link('Settings','admin','button outline'):''}${button('Sign out','signout','text-link')}</div></div>`);
+  if(name==='account')return showModal(`<div class="modal-body"><h2 id="modal-title">${esc(state.user.name)}</h2><div class="stack">${button('Hide spoilers','spoilers','button outline')}${button('Account settings','profile-account','button outline')}${!state.member?button('Join the family','join','button outline'):''}${state.member?.role==='admin'?link('Settings','admin','button outline'):''}${button('Sign out','signout','text-link')}</div></div>`);
   if(name==='profile-account'){modal.close();return state.auth.account();}
   if(name==='signout'){sessionWrite('survivor:save-team',null);sessionWrite('survivor:pending-picks',null);return state.auth.signOut();}
   if(name==='remove')return togglePick(target.dataset.id);
