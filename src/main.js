@@ -8,11 +8,10 @@ const app = document.querySelector('#app'), modal = document.querySelector('#mod
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const state = { cast: [], baseCast: [], season: null, episodes: [], view: {watchedThrough:0,latestEpisode:1,caughtUp:false}, preferences:{watchedThrough:0,revision:0}, updates:{}, settings: { open: true, deadline: null }, auth: null, user: null, member: null, team: {revision: 0}, league: {teams:[],hidden:true}, draft: {name:'',picks:[]}, search:'', watching:false, online:null, authError:'', syncing:false };
 let toastTimer, authUserId, routeGeneration = 0, refreshGeneration = 0, loaded = false;
-const route = () => {const page=location.hash.slice(2).split(/[/?]/)[0];return !page||page==='camp'?'team':page;};
+const route = () => {const page=location.hash.slice(2).split(/[/?]/)[0];return !page||page==='camp'||page==='join'?'team':page;};
 const isPicker = () => route()==='pick'||(route()==='team'&&!state.team.submitted);
 function sessionRead(key){try{return sessionStorage.getItem(key);}catch{return null;}}
 function sessionWrite(key,value){try{value===null?sessionStorage.removeItem(key):sessionStorage.setItem(key,value);}catch{}}
-function rememberInvite(){const code=new URLSearchParams(location.hash.split('?')[1]||'').get('invite');if(code)sessionWrite('survivor:invite',code);}
 const localKey = () => `survivor:s51:${state.user?.id || 'guest'}`;
 const watchKey = () => `${localKey()}:watched`;
 function localRead(key) { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } }
@@ -43,7 +42,13 @@ async function refresh({renderAfter = true} = {}) {
   } catch { if (!current()) return; state.online = false; }
   if (state.user) {
     try {
-      const me = await api('/me'); if (!current()) return; state.member = me.member;
+      let me = await api('/me'); if (!current()) return;
+      if (!me.member) {
+        await api('/join',{method:'POST',body:JSON.stringify({name:(state.user.name||'Castaway').trim().slice(0,40)||'Castaway'})});
+        if (!current()) return;
+        me = await api('/me'); if (!current()) return;
+      }
+      state.member = me.member;
       const dirty = JSON.stringify(state.draft) !== JSON.stringify(state.team.draft || {name:'',picks:[]});
       if (state.team.revision && me.team?.revision !== state.team.revision && dirty && open()) {
         toast('Your team changed on another device. Refresh before saving.');
@@ -158,7 +163,7 @@ function togglePick(id) {
 function leaderboard() {
   const teams = state.league.teams;
   return `${heading('','Scores','',button(icon('refresh')+' Refresh','refresh','button outline'))}
-    ${!state.user||!state.member?`<div class="panel empty-state">${icon('people','large')}<h2>Join the family</h2><p>Use your family invite to join.</p>${button(state.user?'Join the family':'Sign in',state.user?'join':'signin')}</div>`:
+    ${!state.user||!state.member?`<div class="panel empty-state">${icon('people','large')}<h2>Join the family</h2>${button(state.user?'Join the family':'Sign in',state.user?'join':'signin')}</div>`:
     state.league.hidden?`<div class="notice">${icon('lock')} Scores appear when Benson closes picking.</div><div class="member-grid">${teams.map(t=>`<article class="panel member-card"><span class="avatar">${esc(t.player[0])}</span><h3>${esc(t.player)}${t.mine?' <small>(you)</small>':''}</h3><span class="pill ${t.submitted?'green':''}">${icon(t.submitted?'check':'clock')}${t.submitted?'Team saved':'Choosing'}</span></article>`).join('')||'<div class="empty-state"><h2>No teams yet.</h2></div>'}</div>`:
     standings(state.cast,teams.filter(t=>t.submitted),state.season).map(t=>`<details class="standing"><summary><span class="rank">${t.rank===1?icon('trophy'):String(t.rank).padStart(2,'0')}</span><span class="standing-name"><strong>${esc(t.player||t.name)}</strong>${t.mine?'<small>Your team</small>':''}</span><span class="standing-faces">${t.scored.slice(0,4).map(c=>image(c)).join('')}</span><span class="remaining">${t.remaining} still in</span><span class="score">${t.total}<small>points</small></span><span class="expand">+</span></summary>${scoreTable(t)}</details>`).join('')||'<div class="panel empty-state"><h2>No teams yet.</h2><p>Save your team to get started.</p></div>'}
     ${state.member&&!state.league.hidden?'<p class="source-note">Active castaways have provisional placement points.</p>':''}`;
@@ -194,9 +199,9 @@ async function history() {
   return `${heading('THE FAMILY ARCHIVE','Past seasons.','')}<div class="archive-grid">${[50,49].map(n=>`<a href="#/history/s${n}" class="archive-card"><h2>Season ${n}</h2><span>Final standings ${icon('arrow')}</span></a>`).join('')}</div>`;
 }
 function admin() {
-  if(state.member?.role!=='admin')return `${heading('COMMISSIONER','Settings')}<div class="panel empty-state"><p>Sign in with your commissioner account to manage the league.</p>${button(state.user?'Enter commissioner invite':'Sign in',state.user?'join':'signin')}</div>`;
+  if(state.member?.role!=='admin')return `${heading('COMMISSIONER','Settings')}<div class="panel empty-state"><p>Sign in with your commissioner account to manage the league.</p>${!state.user?button('Sign in','signin'):''}</div>`;
   return `${heading('','Settings')}
-    <div class="admin-grid"><section class="panel"><h2>Picking</h2>${statusPill()}<p>${open()?'Closing picking reveals everyone’s teams.':'Reopening lets everyone change their teams.'}</p>${button(open()?'Close picking':'Reopen picking','toggle-lock','button')}<hr><h3>Invite the family</h3><p>A new link replaces the previous one.</p>${button('Create invite link','invite','button outline')}<div id="invite-output"></div></section>
+    <div class="admin-grid"><section class="panel"><h2>Picking</h2>${statusPill()}<p>${open()?'Closing picking reveals everyone’s teams.':'Reopening lets everyone change their teams.'}</p>${button(open()?'Close picking':'Reopen picking','toggle-lock','button')}</section>
     <section class="panel"><h2>Automatic results</h2><p>Checks daily at 8:15 a.m., 12:15 p.m., and 4:15 p.m. Eastern.</p><p>${state.updates.status==='retrying'?'Waiting for complete source data. The last confirmed results are kept.':state.updates.checkedAt?`Last checked ${esc(new Date(state.updates.checkedAt).toLocaleString())}.`:'The first automatic check is pending.'}</p>${button('Check for updates','sync-results','button outline')}<details class="result-correction"><summary>Correct a result</summary>${state.view.caughtUp?`<p class="muted">Enter cumulative totals at the selected episode. Corrections are kept when automatic results update.</p><form id="result-form"><label class="field">Castaway<select name="id" id="result-cast">${state.cast.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></label><div id="result-fields">${resultFields(state.cast[0])}</div><button class="button" type="submit">Save correction</button></form>`:`<p>Catch up to the latest available episode before reviewing scoring corrections.</p>${button('Hide spoilers','spoilers','button outline')}`}</details></section>
     <section class="panel"><h2>Export league</h2>${button(icon('download')+' Export league','export','button outline')}</section></div>`;
 }
@@ -206,7 +211,7 @@ function resultFields(c) {
 async function render() {
   if(!loaded)return; const generation=++routeGeneration;
   let content;
-  try {content = route()==='history'?await history():({team:myTeam,pick:picker,standings:leaderboard,episodes,rules,admin,join:()=>heading('','Join the family')+`<div class="panel empty-state">${button(state.user?'Enter invite code':'Sign in',state.user?'join':'signin')}</div>`}[route()]||myTeam)();}
+  try {content = route()==='history'?await history():({team:myTeam,pick:picker,standings:leaderboard,episodes,rules,admin,join:()=>heading('','Join the family')+`<div class="panel empty-state">${button(state.user?'Join the family':'Sign in',state.user?'join':'signin')}</div>`}[route()]||myTeam)();}
   catch {content=heading('','Something went wrong')+button('Try again','refresh');}
   if(generation!==routeGeneration)return;
   app.innerHTML=shell(content);
@@ -219,8 +224,7 @@ function profile(id) {
 async function signin() {if(state.auth){modal.close();await state.auth.signIn();}else toast(state.authError||'Sign-in is loading. Try again in a moment.');}
 function joinDialog() {
   if(!state.user)return signin();
-  const invite = sessionRead('survivor:invite')||'';
-  showModal(`<div class="modal-body"><h2 id="modal-title">Join the family</h2><form id="join-form"><label class="field">Your name<input name="name" maxlength="40" required value="${esc(state.user.name)}" autocomplete="given-name"></label>${invite?`<input type="hidden" name="code" value="${esc(invite)}">`:'<label class="field">Invite code<input name="code" required autocomplete="off" spellcheck="false"></label>'}<p class="form-error" role="alert"></p><button class="button wide">Join ${icon('arrow')}</button></form></div>`);
+  showModal(`<div class="modal-body"><h2 id="modal-title">Join the family</h2><form id="join-form"><label class="field">Your name<input name="name" maxlength="40" required value="${esc(state.user.name)}" autocomplete="given-name"></label><p class="form-error" role="alert"></p><button class="button wide">Join ${icon('arrow')}</button></form></div>`);
 }
 async function save() {
   if(state.syncing)return;
@@ -256,11 +260,6 @@ async function action(name, target) {
   if(name==='clear-search'){state.search='';return render();}
   if(name==='toggle-lock')return showModal(`<div class="modal-body"><h2 id="modal-title">${open()?'Close picking?':'Reopen picking?'}</h2><p>${open()?'Everyone’s saved teams will be revealed.':'Everyone will be able to change their picks again.'}</p>${button(open()?'Close picking':'Reopen picking','confirm-lock','button wide')}</div>`);
   if(name==='confirm-lock'){target.disabled=true;Object.assign(state,await api('/admin/settings',{method:'PUT',body:JSON.stringify({open:!open(),revision:state.settings.revision})}));modal.close();await refresh();return toast(open()?'Picking reopened.':'Picking closed.');}
-  if(name==='invite'){
-    const {code}=await api('/admin/invite',{method:'POST',body:'{}'});const url=`${CONFIG.site}/#/join?invite=${code}`;
-    document.querySelector('#invite-output').innerHTML=`<label class="field">Family invite link<input readonly value="${esc(url)}" id="invite-link"></label>${button('Copy link','copy-invite','button outline')}`;return;
-  }
-  if(name==='copy-invite'){await navigator.clipboard.writeText(document.querySelector('#invite-link').value);return toast('Invite link copied.');}
   if(name==='export')return showModal(`<div class="modal-body"><h2 id="modal-title">Export all league results?</h2><p>The export includes every published episode, including ones you haven’t watched.</p>${button('Download all results','confirm-export','button wide')}</div>`);
   if(name==='sync-results'){target.disabled=true;const result=await api('/admin/sync',{method:'POST',body:'{}'});await refresh();return toast(result.status==='current'?'Results checked. Your watched setting is unchanged.':'The source is still updating. Another check will run automatically.');}
   if(name==='confirm-export'){
@@ -291,7 +290,7 @@ document.addEventListener('submit',async event=>{
     if(form.id==='spoiler-form'){
       await setWatched(Number(data.watchedThrough));
     }else if(form.id==='join-form'){
-      await api('/join',{method:'POST',body:JSON.stringify(data)});modal.close();sessionWrite('survivor:invite',null);location.hash='/team';await refresh();
+      await api('/join',{method:'POST',body:JSON.stringify(data)});modal.close();location.hash='/team';await refresh();
       if(sessionRead('survivor:save-team')==='yes')await save();
     }else{
       const input={id:data.id,placement:data.placement?Number(data.placement):null,episode:Number(data.episode),revision:Number(data.revision),bonuses:Object.fromEntries(['immunityWin','idolFound','idolPlayed'].map(key=>[key,Number(data[key])]))};
@@ -300,12 +299,11 @@ document.addEventListener('submit',async event=>{
   }catch(error){const inline=form.querySelector('.form-error');if(inline&&modal.open)inline.textContent=error.message;else toast(error.message);}
   finally{submit.disabled=false;}
 });
-window.addEventListener('hashchange',()=>{rememberInvite();modal.close();state.search='';render();window.scrollTo(0,0);});
+window.addEventListener('hashchange',()=>{modal.close();state.search='';render();window.scrollTo(0,0);});
 window.addEventListener('online',()=>refresh());
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&loaded&&!state.watching){resetView();render();refresh();}});
 modal.addEventListener('click',e=>{if(e.target===modal){const r=modal.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)modal.close();}});
 async function boot(){
-  rememberInvite();
   try{
     [state.season,state.baseCast]=await Promise.all(['season','contestants'].map(file=>fetch(`data/s51/${file}.json`).then(r=>{if(!r.ok)throw new Error('Data unavailable');return r.json();})));
     state.cast=preseasonCast(state.baseCast); state.episodes=[{number:1,date:'2026-09-23',locked:true}]; loaded=true;loadDraft();render();

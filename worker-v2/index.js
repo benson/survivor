@@ -17,7 +17,6 @@ export async function verifySession(request, env) {
     return payload.sub;
   } catch { fail('Your session expired. Sign in again.', 401); }
 }
-const hash = async value => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value)))].map(x => x.toString(16).padStart(2, '0')).join('');
 const parse = value => value ? JSON.parse(value) : null;
 async function body(request) {
   if (!request.headers.get('Content-Type')?.includes('application/json')) fail('Send JSON.', 415);
@@ -60,13 +59,8 @@ export function createWorker(authenticate = verifySession) {
           if (member) return json({ member });
           if (env.JOIN_LIMIT && !(await env.JOIN_LIMIT.limit({ key: userId + ':' + (request.headers.get('CF-Connecting-IP') || '') })).success) fail('Too many attempts. Try again in a minute.', 429);
           const input = await body(request);
-          if (typeof input.code !== 'string' || input.code.length > 100 || typeof input.name !== 'string' || !input.name.trim() || input.name.trim().length > 40) fail('Enter your name and family invite code.');
-          const digest = await hash(input.code.trim());
-          const league = await env.DB.prepare('SELECT invite_hash FROM league WHERE id = 1').first();
-          const isAdmin = !!env.COMMISSIONER_INVITE_HASH && digest === env.COMMISSIONER_INVITE_HASH;
-          if (!isAdmin && (!league.invite_hash || digest !== league.invite_hash)) fail('That invite code is not valid.', 403);
-          if (isAdmin && await env.DB.prepare("SELECT user_id FROM members WHERE role = 'admin'").first()) fail('The commissioner account is already claimed.', 409);
-          await env.DB.prepare('INSERT INTO members (user_id, name, role) VALUES (?, ?, ?)').bind(userId, input.name.trim(), isAdmin ? 'admin' : 'member').run();
+          if (typeof input.name !== 'string' || !input.name.trim() || input.name.trim().length > 40) fail('Enter your name.');
+          await env.DB.prepare("INSERT INTO members (user_id, name, role) VALUES (?, ?, 'member') ON CONFLICT(user_id) DO NOTHING").bind(userId, input.name.trim()).run();
           return json({ ok: true });
         }
         if (path === '/me' && request.method === 'GET') return json({ member, preferences: await preferences(env.DB, userId), team: member ? teamModel(await env.DB.prepare('SELECT * FROM teams WHERE user_id = ?').bind(userId).first()) : null });
@@ -80,7 +74,7 @@ export function createWorker(authenticate = verifySession) {
           if (!result.meta.changes) fail('Your watched setting changed on another device. Refresh and try again.',409);
           return json({ ...await seasonView(env.DB,input.watchedThrough), preferences: await preferences(env.DB,userId) });
         }
-        if (!member) fail('Join the family league with your invite code.', 403);
+        if (!member) fail('Join the family league to continue.', 403);
         if (path === '/league' && request.method === 'GET') {
           const { settings } = await snapshot(env.DB);
           const { results } = await env.DB.prepare('SELECT m.name AS player, m.user_id, t.submitted, t.submitted_at FROM members m LEFT JOIN teams t ON t.user_id = m.user_id ORDER BY m.joined_at').all();
@@ -113,12 +107,6 @@ export function createWorker(authenticate = verifySession) {
         }
         if (!path.startsWith('/admin/')) fail('Not found.', 404);
         if (member.role !== 'admin') fail('Commissioner access required.', 403);
-        if (path === '/admin/invite' && request.method === 'POST') {
-          const bytes = crypto.getRandomValues(new Uint8Array(12));
-          const code = [...bytes].map(n => n.toString(16).padStart(2, '0')).join('');
-          await env.DB.prepare('UPDATE league SET invite_hash=? WHERE id=1').bind(await hash(code)).run();
-          return json({ code });
-        }
         if (path === '/admin/settings' && request.method === 'PUT') {
           const input = await body(request);
           if (typeof input.open !== 'boolean' || !Number.isInteger(input.revision)) fail('Invalid league settings.');

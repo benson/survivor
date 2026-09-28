@@ -6,11 +6,11 @@ Season 51 at **https://survivordraft.bensonperry.com**. GitHub Pages serves an e
 
 The app opens directly to **Pick 7 people**. Choose from the full original cast and press **Save team**. There is no required team name, separate draft save, or review step. Partial selections persist locally; Save team enters all seven picks. Existing team names are preserved and new teams are named automatically. The best six individual totals count. Navigation has three tabs: My team, Scores, and Episodes; rules and administration are in the footer.
 
-Picking stays open until the commissioner locks it. Picks are private at the API until locked. Ties share ranks. Family members need a Clerk account and a family invite. No Gmail access is requested; Google supplies identity only.
+Picking stays open until the commissioner locks it. Picks are private at the API until locked. Ties share ranks. Anyone who signs in with a Clerk account automatically joins the league. Share the regular site URL; no invitation is required. No Gmail access is requested; Google supplies identity only.
 
 ## Commissioner
 
-Benson's verified Google account in the dedicated Clerk application is the commissioner. The initial bootstrap credential has been retired. Sign in, then open **Settings** to create a family invitation. Rotating the family invite does not remove existing members.
+Benson's existing account in the dedicated Clerk application is the commissioner. New accounts always join as regular members. Sign in, then open **Settings** to manage the league.
 
 Use Settings to close/reopen picking, correct cumulative placement and bonus results, and export teams and the change log. Individual immunity wins count; tribal wins and Shots in the Dark do not. A save requires the current record version, so another device cannot silently overwrite a newer save. Incomplete local selections do not enter the standings.
 
