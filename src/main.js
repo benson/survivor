@@ -9,7 +9,7 @@ const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;',
 const state = { cast: [], baseCast: [], season: null, episodes: [], view: {watchedThrough:0,latestEpisode:1,caughtUp:false}, preferences:{watchedThrough:0,revision:0}, updates:{}, settings: { open: true, deadline: null }, auth: null, user: null, member: null, team: {revision: 0}, league: {teams:[],hidden:true}, draft: {name:'',picks:[]}, search:'', watching:false, online:null, authError:'', syncing:false };
 let toastTimer, authUserId, routeGeneration = 0, refreshGeneration = 0, loaded = false;
 const route = () => {const page=location.hash.slice(2).split(/[/?]/)[0];return !page||page==='camp'||page==='join'?'team':page;};
-const isPicker = () => route()==='pick'||(route()==='team'&&!state.team.submitted);
+const isPicker = () => isOpen(state.settings)&&(route()==='pick'||(route()==='team'&&!state.team.submitted));
 function sessionRead(key){try{return sessionStorage.getItem(key);}catch{return null;}}
 function sessionWrite(key,value){try{value===null?sessionStorage.removeItem(key):sessionStorage.setItem(key,value);}catch{}}
 const localKey = () => `survivor:s51:${state.user?.id || 'guest'}`;
@@ -172,7 +172,7 @@ function scoreTable(team) {
   return `<div class="table-scroll"><table><thead><tr><th>Castaway</th><th>Place</th><th>Gameplay</th><th>Finalist</th><th>Total</th></tr></thead><tbody>${team.scored.map(c=>`<tr class="${c.dropped?'dropped':''}"><th>${esc(c.name)} ${c.dropped?'<span class="pill">Dropped</span>':''}</th><td>${c.placementPoints}${c.placement==null?'*':''}</td><td>${c.gameplayPoints}</td><td>${c.finalistPoints}</td><td><strong>${c.total}</strong></td></tr>`).join('')}</tbody></table></div>`;
 }
 function myTeam() {
-  if(!state.team.submitted)return picker();
+  if(!state.team.submitted)return open()?picker():`${heading('','Your team','',statusPill())}<div class="notice">Picking has ended.</div>`;
   const team=state.team.submitted, members=team.picks.map(id=>state.cast.find(c=>c.id===id)).filter(Boolean);
   return `${heading('','Your team','',open()?link('Change picks','pick','button outline'):'')}
     <div class="watch-team">${members.map(c=>`<article class="panel watch-castaway">${image(c)}<div><h2>${esc(c.shortName)}</h2><p>${esc(c.occupation)}</p></div></article>`).join('')}</div>
@@ -211,7 +211,7 @@ function resultFields(c) {
 async function render() {
   if(!loaded)return; const generation=++routeGeneration;
   let content;
-  try {content = route()==='history'?await history():({team:myTeam,pick:picker,standings:leaderboard,episodes,rules,admin,join:()=>heading('','Join the family')+`<div class="panel empty-state">${button(state.user?'Join the family':'Sign in',state.user?'join':'signin')}</div>`}[route()]||myTeam)();}
+  try {content = route()==='history'?await history():({team:myTeam,pick:()=>open()?picker():myTeam(),standings:leaderboard,episodes,rules,admin,join:()=>heading('','Join the family')+`<div class="panel empty-state">${button(state.user?'Join the family':'Sign in',state.user?'join':'signin')}</div>`}[route()]||myTeam)();}
   catch {content=heading('','Something went wrong')+button('Try again','refresh');}
   if(generation!==routeGeneration)return;
   app.innerHTML=shell(content);
